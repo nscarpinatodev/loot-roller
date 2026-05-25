@@ -1,0 +1,1010 @@
+/* ============================================================
+   Loot Roller — Module Stylesheet
+   ============================================================ */
+
+/* ── Shared ─────────────────────────────────────────────── */
+
+.loot-roller .window-content {
+  padding: 0;
+  overflow-y: auto;
+}
+
+.loot-roller-content,
+.lottery-setup-content,
+.lottery-player-content,
+.loot-roller-chat {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--font-primary);
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.loot-roller .form-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding-top: 8px;
+  border-top: 1px solid var(--color-border-light);
+}
+
+/* ── Generation Dialog ───────────────────────────────────── */
+
+.loot-roller-generate .system-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--color-text-light-7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.loot-roller-generate .form-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.loot-roller-generate .form-group {
+  display: grid;
+  grid-template-columns: 140px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.loot-roller-generate .form-group label {
+  font-weight: bold;
+  text-align: right;
+}
+
+.loot-roller-generate .form-group .hint {
+  grid-column: 1 / -1;
+  font-size: 11px;
+  color: var(--color-text-light-7);
+  margin: 0;
+}
+
+.btn-generate {
+  padding: 8px 16px;
+  background: var(--color-button-active, #4a7a4a);
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-generate:hover {
+  filter: brightness(1.1);
+}
+
+.no-adapter {
+  text-align: center;
+  padding: 24px;
+  color: var(--color-text-light-7);
+}
+
+/* ── Lottery Setup ───────────────────────────────────────── */
+
+.lottery-setup .lottery-section {
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  padding: 10px 12px;
+}
+
+.lottery-setup .lottery-section h3 {
+  margin: 0 0 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-light-7);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Coins row */
+.coins-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.coins-amount {
+  font-size: 15px;
+  font-weight: bold;
+  color: goldenrod;
+}
+
+.coin-destination {
+  display: flex;
+  gap: 6px;
+}
+
+.currency-btn {
+  padding: 3px 8px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-light);
+  background: transparent;
+  font-size: 12px;
+  color: var(--color-text-light-7);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.currency-btn.selected {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-highlight);
+  font-weight: bold;
+}
+
+/* Party stash drop target */
+.party-stash-drop {
+  min-height: 36px;
+  border: 2px dashed var(--color-border-light);
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+}
+
+.party-stash-drop:hover,
+.party-stash-drop.drag-over {
+  border-color: var(--color-border-highlight);
+  background: rgba(0, 0, 0, 0.05);
+}
+
+.stash-name {
+  font-weight: bold;
+}
+
+.stash-clear {
+  margin-left: auto;
+  color: var(--color-text-light-7);
+  cursor: pointer;
+}
+
+.stash-clear:hover {
+  color: var(--color-text-error);
+}
+
+/* Item list */
+.item-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 340px;
+  overflow-y: auto;
+}
+
+.lottery-item {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+  transition: background 0.15s;
+}
+
+.lottery-item:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.lottery-item.active {
+  background: rgba(74, 122, 74, 0.12);
+  border-color: #4a7a4a;
+}
+
+.lottery-item.stub .item-name {
+  font-style: italic;
+  color: var(--color-text-light-7);
+}
+
+.lottery-item .item-img {
+  width: 36px;
+  height: 36px;
+  object-fit: cover;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-light);
+}
+
+.item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.item-name {
+  font-weight: bold;
+  font-size: 13px;
+}
+
+.item-rarity {
+  font-size: 11px;
+  text-transform: capitalize;
+}
+
+.item-rarity.uncommon { color: #1a7f37; }
+.item-rarity.rare     { color: #0550ae; }
+.item-rarity.very-rare { color: #8250df; }
+.item-rarity.legendary { color: #bc4c00; }
+
+.item-stub-note {
+  font-size: 10px;
+  color: var(--color-text-light-7);
+}
+
+.item-destination {
+  display: flex;
+  gap: 6px;
+}
+
+.dest-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-light);
+  background: transparent;
+  font-size: 12px;
+  color: var(--color-text-light-7);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.dest-btn:hover { border-color: var(--color-border-highlight); }
+
+.dest-lottery.selected { color: #4a7a4a; border-color: #4a7a4a; background: rgba(74,122,74,0.08); }
+.dest-stash.selected   { color: #0550ae; border-color: #0550ae; background: rgba(5,80,174,0.08); }
+.dest-discard.selected { color: #cf222e; border-color: #cf222e; background: rgba(207,34,46,0.08); }
+
+.btn-start-lottery {
+  padding: 8px 20px;
+  background: #4a7a4a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-start-lottery:hover {
+  filter: brightness(1.1);
+}
+
+/* Stash read-only indicator (in Lottery Setup) */
+.stash-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  background: rgba(0,0,0,0.03);
+  border: 1px solid var(--color-border-light);
+}
+
+/* ── GM Lottery Monitor ──────────────────────────────────── */
+
+.lottery-gm-content {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--font-primary);
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.lottery-gm-content .lottery-progress {
+  text-align: center;
+  font-size: 11px;
+  color: var(--color-text-light-7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.player-statuses h4 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-light-7);
+}
+
+.player-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 8px;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-light);
+  margin-bottom: 4px;
+  font-size: 12px;
+}
+
+.player-status-waiting { opacity: 0.7; }
+.player-status-rolled  { background: rgba(74,122,74,0.1); border-color: #4a7a4a; }
+.player-status-passed  { color: var(--color-text-light-7); }
+
+.player-name { font-weight: bold; flex: 1; }
+
+.upcoming-items {
+  border-top: 1px solid var(--color-border-light);
+  padding-top: 8px;
+}
+
+.upcoming-items h4 {
+  margin: 0 0 6px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-light-7);
+}
+
+.upcoming-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 3px 0;
+  font-size: 12px;
+  color: var(--color-text-light-7);
+}
+
+.upcoming-item img {
+  width: 24px;
+  height: 24px;
+  border-radius: 3px;
+  object-fit: cover;
+  border: 1px solid var(--color-border-light);
+}
+
+.btn-force-resolve {
+  width: 100%;
+  padding: 8px;
+  background: #9a2626;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-force-resolve:hover { filter: brightness(1.15); }
+
+/* ── Player Popup ────────────────────────────────────────── */
+
+.lottery-player .window-content {
+  padding: 0;
+}
+
+.lottery-player-content {
+  align-items: stretch;
+}
+
+.tiebreaker-banner {
+  background: #ffc107;
+  color: #333;
+  font-weight: bold;
+  text-align: center;
+  padding: 6px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.item-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: rgba(0,0,0,0.03);
+}
+
+.item-card .item-img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 2px solid var(--color-border-light);
+}
+
+.item-card .item-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.item-card .item-name {
+  font-size: 16px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.item-card .item-progress {
+  font-size: 11px;
+  color: var(--color-text-light-7);
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.btn-roll,
+.btn-pass {
+  flex: 1;
+  padding: 12px 8px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: filter 0.15s;
+}
+
+.btn-roll {
+  background: #4a7a4a;
+  color: #fff;
+}
+
+.btn-pass {
+  background: var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+.btn-roll:hover { filter: brightness(1.1); }
+.btn-pass:hover { filter: brightness(0.9); }
+
+.roll-result {
+  text-align: center;
+  font-size: 20px;
+  padding: 12px;
+}
+
+.roll-result strong {
+  font-size: 28px;
+  color: #4a7a4a;
+}
+
+.countdown {
+  text-align: center;
+  font-size: 12px;
+  color: var(--color-text-light-7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+/* ── Chat Card ───────────────────────────────────────────── */
+
+.loot-roller-chat {
+  font-size: 12px;
+}
+
+.loot-roller-chat .chat-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 14px;
+  font-weight: bold;
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: 6px;
+}
+
+.loot-roller-chat ul {
+  margin: 4px 0;
+  padding-left: 16px;
+}
+
+.loot-roller-chat li {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 2px 0;
+}
+
+.winner-item { font-weight: bold; }
+.winner-arrow { color: var(--color-text-light-7); }
+.winner-name  { color: #4a7a4a; }
+
+.dist-mode {
+  font-size: 11px;
+  color: var(--color-text-light-7);
+}
+
+/* ── Injected toolbar button (renderSceneControls fallback) ─ */
+
+.loot-roller-control {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 4px;
+  gap: 2px;
+}
+
+.loot-roller-control i {
+  font-size: 20px;
+  text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+}
+
+.loot-roller-control:hover i {
+  text-shadow: 0 0 8px rgba(255, 200, 0, 0.7);
+}
+
+/* ── Loot Hub ────────────────────────────────────────────── */
+
+.loot-hub-content {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  font-family: var(--font-primary);
+}
+
+.hub-system-badge {
+  font-size: 11px;
+  color: var(--color-text-light-7);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+}
+
+.hub-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hub-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: transparent;
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s, border-color 0.15s;
+  width: 100%;
+}
+
+.hub-btn:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: var(--color-border-highlight);
+}
+
+.hub-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.hub-btn-icon {
+  font-size: 20px;
+  width: 28px;
+  text-align: center;
+  color: var(--color-text-light-7);
+  flex-shrink: 0;
+}
+
+.hub-btn-title {
+  font-weight: bold;
+  font-size: 13px;
+  display: block;
+}
+
+.hub-btn-desc {
+  font-size: 11px;
+  color: var(--color-text-light-7);
+  display: block;
+}
+
+/* ── Quest Generator / Shop Generator shared ─────────────── */
+
+.quest-generator-content,
+.shop-generator-content {
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-family: var(--font-primary);
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.generator-filters,
+.shop-config {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.filter-label {
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-light-7);
+}
+
+.hint-inline {
+  font-weight: normal;
+  font-size: 10px;
+  margin-left: 4px;
+}
+
+.filter-buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.filter-btn {
+  padding: 3px 10px;
+  border-radius: 3px;
+  border: 1px solid var(--color-border-light);
+  background: transparent;
+  font-size: 12px;
+  color: var(--color-text-light-7);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.filter-btn.selected {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-highlight);
+  background: rgba(0, 0, 0, 0.06);
+  font-weight: bold;
+}
+
+/* Rarity-coloured buttons when selected */
+.rarity-btn.uncommon.selected { color: #1a7f37; border-color: #1a7f37; background: rgba(26,127,55,0.1); }
+.rarity-btn.rare.selected     { color: #0550ae; border-color: #0550ae; background: rgba(5,80,174,0.1); }
+.rarity-btn.very-rare.selected { color: #8250df; border-color: #8250df; background: rgba(130,80,223,0.1); }
+.rarity-btn.legendary.selected { color: #bc4c00; border-color: #bc4c00; background: rgba(188,76,0,0.1); }
+.rarity-btn.unique.selected    { color: #6f42c1; border-color: #6f42c1; background: rgba(111,66,193,0.1); }
+
+/* ── Quest item card ─────────────────────────────────────── */
+
+.current-item-area {
+  min-height: 64px;
+}
+
+.item-searching,
+.item-no-results,
+.item-roll-prompt {
+  text-align: center;
+  padding: 16px;
+  color: var(--color-text-light-7);
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px dashed var(--color-border-light);
+  border-radius: 6px;
+}
+
+.quest-item-card {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.quest-item-card .item-img {
+  width: 52px;
+  height: 52px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-light);
+  flex-shrink: 0;
+}
+
+.quest-item-card .item-details {
+  flex: 1;
+}
+
+.quest-item-card .item-name {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.quest-item-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.btn-add-item {
+  padding: 5px 10px;
+  background: #4a7a4a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  white-space: nowrap;
+}
+
+.btn-reroll {
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-add-item:hover { filter: brightness(1.1); }
+.btn-reroll:hover   { border-color: var(--color-border-highlight); }
+
+/* ── Shared item list (quest + shop) ─────────────────────── */
+
+.section-label {
+  margin: 0 0 6px;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-light-7);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.item-count {
+  font-weight: normal;
+}
+
+.btn-icon-remove {
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-text-light-7);
+  cursor: pointer;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+.btn-icon-remove:hover { color: var(--color-text-error); }
+
+.reward-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.btn-distribute {
+  flex: 1;
+  padding: 8px 12px;
+  background: #4a7a4a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+}
+
+.btn-distribute:hover { filter: brightness(1.1); }
+
+.btn-save-list {
+  padding: 8px 12px;
+  background: transparent;
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-save-list:hover { border-color: var(--color-border-highlight); }
+
+/* ── Shop Generator ──────────────────────────────────────── */
+
+.shop-config .form-group {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+.shop-config .form-group label {
+  font-size: 12px;
+  font-weight: bold;
+  text-align: right;
+  color: var(--color-text-light-7);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.shop-inventory {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* ── Saved Lists ─────────────────────────────────────────── */
+
+.saved-lists-content {
+  padding: 8px 12px;
+  font-family: var(--font-primary);
+  font-size: 13px;
+  color: var(--color-text-primary);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.saved-lists-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--color-text-light-7);
+  font-size: 13px;
+}
+
+.saved-lists-empty i {
+  font-size: 28px;
+  opacity: 0.4;
+}
+
+.saved-lists-empty p {
+  margin: 0;
+}
+
+.saved-list-items {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  overflow-y: auto;
+}
+
+.saved-list-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.saved-list-row:hover {
+  background: rgba(0, 0, 0, 0.03);
+}
+
+.saved-list-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.saved-list-name {
+  font-weight: bold;
+  font-size: 13px;
+  display: block;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.saved-list-meta {
+  display: flex;
+  gap: 10px;
+  margin-top: 2px;
+  font-size: 11px;
+  color: var(--color-text-light-7);
+}
+
+.saved-list-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.btn-award-list {
+  padding: 4px 10px;
+  background: #4a7a4a;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-award-list:hover { filter: brightness(1.1); }
+
+.btn-icon {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-light);
+  background: transparent;
+  border-radius: 3px;
+  cursor: pointer;
+  color: var(--color-text-light-7);
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-icon:hover { color: var(--color-text-primary); border-color: var(--color-border-highlight); }
+
+.btn-icon-danger:hover {
+  color: var(--color-text-error, #cf222e);
+  border-color: var(--color-text-error, #cf222e);
+}

@@ -1,0 +1,98 @@
+{{!-- Shop Generator — bulk inventory generator for a merchant or treasure room --}}
+<div class="shop-generator-content">
+
+  {{#unless hasAdapter}}
+    <p class="no-adapter">{{localize "LOOTROLLER.warn.noAdapterDescription"}}</p>
+  {{else}}
+
+  {{!-- Shop configuration --}}
+  <div class="shop-config">
+
+    <div class="form-group">
+      <label>{{localize "LOOTROLLER.shop.shopName"}}</label>
+      <input type="text" name="shopName" value="{{shopName}}"
+        placeholder="{{localize 'LOOTROLLER.shop.shopNamePlaceholder'}}" />
+    </div>
+
+    <div class="form-group">
+      <label>{{localize "LOOTROLLER.shop.itemCount"}}</label>
+      <input type="number" name="itemCount" value="{{itemCount}}" min="1" max="50" />
+    </div>
+
+    {{!-- Rarity filters --}}
+    <div class="filter-group">
+      <label class="filter-label">{{localize "LOOTROLLER.shop.rarities"}}</label>
+      <div class="filter-buttons">
+        {{#each rarities}}
+          <button type="button" data-action="toggle-rarity" data-rarity="{{this.value}}"
+            class="filter-btn rarity-btn {{lootrollerRarityClass this.value}} {{#if (lootrollerIncludes ../selectedRarities this.value)}}selected{{/if}}">
+            {{localize this.label}}
+          </button>
+        {{/each}}
+      </div>
+    </div>
+
+    {{!-- Item type filters --}}
+    {{#if itemTypes.length}}
+    <div class="filter-group">
+      <label class="filter-label">{{localize "LOOTROLLER.shop.itemTypes"}} <span class="hint-inline">{{localize "LOOTROLLER.quest.itemTypesHint"}}</span></label>
+      <div class="filter-buttons">
+        {{#each itemTypes}}
+          <button type="button" data-action="toggle-type" data-item-type="{{this.value}}"
+            class="filter-btn type-btn {{#if (lootrollerIncludes ../selectedTypes this.value)}}selected{{/if}}">
+            {{localize this.label}}
+          </button>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+
+    <button type="button" class="btn-generate" data-action="generate">
+      {{#if generating}}
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        {{localize "LOOTROLLER.shop.generating"}}
+      {{else}}
+        <i class="fa-solid fa-store"></i>
+        {{localize "LOOTROLLER.shop.generate"}}
+      {{/if}}
+    </button>
+
+  </div>
+
+  {{!-- Generated inventory --}}
+  {{#if hasItems}}
+    <div class="shop-inventory">
+      <h3 class="section-label">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        {{localize "LOOTROLLER.shop.inventory"}}
+        <span class="item-count">({{items.length}})</span>
+      </h3>
+      <div class="item-list">
+        {{#each items}}
+          <div class="lottery-item {{#if this.stub}}stub{{/if}}">
+            <img class="item-img" src="{{this.img}}" alt="{{this.name}}" />
+            <div class="item-info">
+              <span class="item-name">{{this.name}}</span>
+              {{#if this.rarity}}
+                <span class="item-rarity {{lootrollerRarityClass this.rarity}}">{{this.rarity}}</span>
+              {{/if}}
+            </div>
+            <button type="button" class="btn-icon-remove" data-action="remove-item" data-idx="{{this.idx}}"
+              title="{{localize 'LOOTROLLER.quest.removeItem'}}">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        {{/each}}
+      </div>
+
+      <div class="reward-actions">
+        <button type="button" class="btn-distribute" data-action="create-shop">
+          <i class="fa-solid fa-store"></i>
+          {{localize "LOOTROLLER.shop.createShop"}}
+        </button>
+      </div>
+    </div>
+  {{/if}}
+
+  {{/unless}}
+</div>

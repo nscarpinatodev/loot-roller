@@ -1,0 +1,40 @@
+{{!-- Loot Hub — main launcher for the four loot categories --}}
+<div class="loot-hub-content">
+
+  {{#if hasAdapter}}
+    <p class="hub-system-badge">
+      <i class="fa-solid fa-microchip"></i>
+      {{systemName}}
+    </p>
+  {{else}}
+    <p class="no-adapter">{{localize "LOOTROLLER.warn.noAdapterDescription"}}</p>
+  {{/if}}
+
+  <div class="hub-buttons">
+
+    <button type="button" data-action="open-treasure" class="hub-btn" {{#unless hasAdapter}}disabled{{/unless}}>
+      <i class="fa-solid fa-coins hub-btn-icon"></i>
+      <span class="hub-btn-title">{{localize "LOOTROLLER.hub.treasure.title"}}</span>
+      <span class="hub-btn-desc">{{localize "LOOTROLLER.hub.treasure.desc"}}</span>
+    </button>
+
+    <button type="button" data-action="open-quest" class="hub-btn" {{#unless hasAdapter}}disabled{{/unless}}>
+      <i class="fa-solid fa-scroll hub-btn-icon"></i>
+      <span class="hub-btn-title">{{localize "LOOTROLLER.hub.quest.title"}}</span>
+      <span class="hub-btn-desc">{{localize "LOOTROLLER.hub.quest.desc"}}</span>
+    </button>
+
+    <button type="button" data-action="open-shop" class="hub-btn" {{#unless hasAdapter}}disabled{{/unless}}>
+      <i class="fa-solid fa-shop hub-btn-icon"></i>
+      <span class="hub-btn-title">{{localize "LOOTROLLER.hub.shop.title"}}</span>
+      <span class="hub-btn-desc">{{localize "LOOTROLLER.hub.shop.desc"}}</span>
+    </button>
+
+    <button type="button" data-action="open-lists" class="hub-btn">
+      <i class="fa-solid fa-list hub-btn-icon"></i>
+      <span class="hub-btn-title">{{localize "LOOTROLLER.hub.lists.title"}}</span>
+      <span class="hub-btn-desc">{{localize "LOOTROLLER.hub.lists.desc"}}</span>
+    </button>
+
+  </div>
+</div>

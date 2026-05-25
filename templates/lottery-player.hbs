@@ -1,0 +1,48 @@
+{{!-- Player roll/pass popup --}}
+<div class="lottery-player-content">
+
+  {{#if tieBreakerMode}}
+    <div class="tiebreaker-banner">
+      <i class="fa-solid fa-handshake-angle"></i>
+      {{localize "LOOTROLLER.player.tieBreaker"}}
+    </div>
+  {{/if}}
+
+  <div class="item-card">
+    <img class="item-img" src="{{item.itemImg}}" alt="{{item.itemName}}" />
+    <div class="item-details">
+      <h2 class="item-name">{{item.itemName}}</h2>
+      {{#if item.total}}
+        <span class="item-progress">
+          {{localize "LOOTROLLER.player.itemProgress"}} {{item.round}}/{{item.total}}
+        </span>
+      {{/if}}
+    </div>
+  </div>
+
+  {{#if rolled}}
+    <div class="roll-result">
+      <i class="fa-solid fa-dice-d20"></i>
+      {{localize "LOOTROLLER.player.youRolled"}} <strong>{{rollResult}}</strong>
+    </div>
+  {{else}}
+    <div class="action-buttons">
+      <button type="button" data-action="roll" class="btn-roll">
+        <i class="fa-solid fa-dice-d20"></i>
+        {{localize "LOOTROLLER.player.rollButton"}}
+      </button>
+      <button type="button" data-action="pass" class="btn-pass">
+        <i class="fa-solid fa-forward"></i>
+        {{localize "LOOTROLLER.player.passButton"}}
+      </button>
+    </div>
+
+    {{#if hasTimer}}
+      <div class="countdown">
+        <i class="fa-regular fa-clock"></i>
+        {{localize "LOOTROLLER.player.timeLeft"}} <strong>{{secondsLeft}}s</strong>
+      </div>
+    {{/if}}
+  {{/if}}
+
+</div>

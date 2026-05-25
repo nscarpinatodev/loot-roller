@@ -1,0 +1,48 @@
+{
+  "id": "loot-roller",
+  "title": "Loot Roller",
+  "description": "A system-agnostic loot generator with a real-time player lottery/roll-off system. Supports D&D 5e (2014 & 2024 DMG tables) and Pathfinder 2e out of the box. Items are pulled from system compendiums. Additional systems can register via the plugin API.",
+  "version": "1.0.0",
+  "compatibility": {
+    "minimum": "12",
+    "verified": "14"
+  },
+  "socket": true,
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/loot-roller.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "lang/en.json"
+    }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "dnd5e",
+        "type": "system",
+        "compatibility": {
+          "minimum": "5.2.0",
+          "verified": "5.3.0"
+        }
+      },
+      {
+        "id": "pf2e",
+        "type": "system"
+      }
+    ]
+  },
+  "authors": [
+    {
+      "name": "loot-roller contributors",
+      "url": "https://github.com/nscarpinatodev/5e-loot-roller"
+    }
+  ],
+  "url": "https://github.com/nscarpinatodev/5e-loot-roller",
+  "manifest": "https://raw.githubusercontent.com/nscarpinatodev/5e-loot-roller/main/module.json"
+}

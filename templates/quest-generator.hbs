@@ -1,0 +1,138 @@
+{{!-- Quest Generator — roll items one at a time and build a reward list --}}
+<div class="quest-generator-content">
+
+  {{#unless hasAdapter}}
+    <p class="no-adapter">{{localize "LOOTROLLER.warn.noAdapterDescription"}}</p>
+  {{else}}
+
+  {{!-- Filters --}}
+  <div class="generator-filters">
+
+    {{!-- Rarity --}}
+    <div class="filter-group">
+      <label class="filter-label">{{localize "LOOTROLLER.quest.rarity"}}</label>
+      <div class="filter-buttons">
+        {{#each rarities}}
+          <button type="button" data-action="set-rarity" data-rarity="{{this.value}}"
+            class="filter-btn rarity-btn {{lootrollerRarityClass this.value}} {{#if (lootrollerEq this.value ../selectedRarity)}}selected{{/if}}">
+            {{localize this.label}}
+          </button>
+        {{/each}}
+      </div>
+    </div>
+
+    {{!-- Item types --}}
+    {{#if itemTypes.length}}
+    <div class="filter-group">
+      <label class="filter-label">{{localize "LOOTROLLER.quest.itemTypes"}} <span class="hint-inline">{{localize "LOOTROLLER.quest.itemTypesHint"}}</span></label>
+      <div class="filter-buttons">
+        {{#each itemTypes}}
+          {{#with (lookup ../selectedTypes @index) as |sel|}}{{/with}}
+          <button type="button" data-action="toggle-type" data-item-type="{{this.value}}"
+            class="filter-btn type-btn {{#if (lootrollerIncludes ../selectedTypes this.value)}}selected{{/if}}">
+            {{localize this.label}}
+          </button>
+        {{/each}}
+      </div>
+    </div>
+    {{/if}}
+
+  </div>
+
+  {{!-- Current item card --}}
+  <div class="current-item-area">
+    {{#if searching}}
+      <div class="item-searching">
+        <i class="fa-solid fa-spinner fa-spin"></i>
+        {{localize "LOOTROLLER.quest.searching"}}
+      </div>
+    {{else if noResults}}
+      <div class="item-no-results">
+        <i class="fa-solid fa-circle-exclamation"></i>
+        {{localize "LOOTROLLER.quest.noResults"}}
+      </div>
+    {{else if current}}
+      <div class="item-card quest-item-card">
+        <img class="item-img" src="{{current.img}}" alt="{{current.name}}" />
+        <div class="item-details">
+          <p class="item-name">{{current.name}}</p>
+          <p class="item-rarity {{lootrollerRarityClass current.rarity}}">{{current.rarity}}</p>
+          {{#if current.stub}}
+            <p class="item-stub-note">{{localize "LOOTROLLER.lottery.itemNotInCompendium"}}</p>
+          {{/if}}
+        </div>
+        <div class="quest-item-actions">
+          <button type="button" class="btn-add-item" data-action="add-item">
+            <i class="fa-solid fa-plus"></i>
+            {{localize "LOOTROLLER.quest.addItem"}}
+          </button>
+          <button type="button" class="btn-reroll" data-action="roll-item">
+            <i class="fa-solid fa-rotate"></i>
+            {{localize "LOOTROLLER.quest.reroll"}}
+          </button>
+        </div>
+      </div>
+    {{else if rolled}}
+      {{!-- After a roll resolved with no current item but noResults is false: shouldn't happen, but safe fallback --}}
+    {{else}}
+      <div class="item-roll-prompt">
+        <p>{{localize "LOOTROLLER.quest.rollPrompt"}}</p>
+      </div>
+    {{/if}}
+  </div>
+
+  {{!-- Roll button (shown when no current item and not searching) --}}
+  {{#unless current}}
+    {{#unless searching}}
+      <button type="button" class="btn-generate" data-action="roll-item">
+        <i class="fa-solid fa-dice-d20"></i>
+        {{#if rolled}}
+          {{localize "LOOTROLLER.quest.rollAgain"}}
+        {{else}}
+          {{localize "LOOTROLLER.quest.rollFirst"}}
+        {{/if}}
+      </button>
+    {{/unless}}
+  {{/unless}}
+
+  {{!-- Accumulated reward list --}}
+  {{#if items.length}}
+    <div class="reward-list-section">
+      <h3 class="section-label">
+        <i class="fa-solid fa-gift"></i>
+        {{localize "LOOTROLLER.quest.rewardList"}}
+        <span class="item-count">({{items.length}})</span>
+      </h3>
+      <div class="item-list">
+        {{#each items}}
+          <div class="lottery-item {{#if this.stub}}stub{{/if}}">
+            <img class="item-img" src="{{this.img}}" alt="{{this.name}}" />
+            <div class="item-info">
+              <span class="item-name">{{this.name}}</span>
+              {{#if this.rarity}}
+                <span class="item-rarity {{lootrollerRarityClass this.rarity}}">{{this.rarity}}</span>
+              {{/if}}
+            </div>
+            <button type="button" class="btn-icon-remove" data-action="remove-item" data-idx="{{this.idx}}"
+              title="{{localize 'LOOTROLLER.quest.removeItem'}}">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        {{/each}}
+      </div>
+
+      <div class="reward-actions">
+        <button type="button" class="btn-distribute" data-action="distribute">
+          <i class="fa-solid fa-dice-d20"></i>
+          {{localize "LOOTROLLER.quest.distribute"}}
+        </button>
+        <button type="button" class="btn-save-list" data-action="save-list">
+          <i class="fa-solid fa-floppy-disk"></i>
+          {{localize "LOOTROLLER.quest.saveForLater"}}
+        </button>
+      </div>
+    </div>
+  {{/if}}
+
+  {{/unless}}
+</div>

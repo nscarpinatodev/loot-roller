@@ -1,0 +1,272 @@
+{
+  "LOOTROLLER": {
+    "app": {
+      "title": "Loot Roller",
+      "generateButton": "Generate Loot"
+    },
+    "toolbar": {
+      "openRoller": "Open Loot Roller"
+    },
+    "warn": {
+      "noAdapter": "No loot adapter registered for system \"{system}\". This system may not be supported.",
+      "noAdapterDescription": "No loot adapter is registered for this game system. The module currently supports D&D 5e and Pathfinder 2e. See the API documentation to add support for other systems.",
+      "noItemsSelected": "No items were assigned to the lottery or stash. Please assign at least one item."
+    },
+    "error": {
+      "generateFailed": "Loot generation failed. Check the console for details.",
+      "noTable": "Could not find table for {treasureType} / {bracket} (edition: {edition})."
+    },
+
+    "settings": {
+      "partyStashConfig": {
+        "name": "Party Stash Actor",
+        "label": "Configure",
+        "hint": "Set the actor that receives stash items and shared currency."
+      },
+      "partyStashActor": {
+        "name": "Party Stash Actor (UUID)",
+        "hint": "UUID of the actor that receives stash items and shared currency. Use the Configure button above to set this via drag-and-drop."
+      },
+      "includeMagicItems": {
+        "name": "Include Magic Items",
+        "hint": "Include magic items in generated loot. When disabled, only coins, gems, and art objects will be rolled."
+      },
+      "includeGems": {
+        "name": "Include Gems",
+        "hint": "Include gem rewards in hoard loot (2014 DMG). Has no effect on 2024 DMG tables."
+      },
+      "includeArtObjects": {
+        "name": "Include Art Objects",
+        "hint": "Include art object rewards in hoard loot (2014 DMG). Has no effect on 2024 DMG tables."
+      },
+      "allowDuplicateItems": {
+        "name": "Allow Duplicate Items",
+        "hint": "When disabled (default), each item name can only appear once per loot roll. Recommended off to avoid receiving 10 Potions of Healing."
+      },
+      "currencyDistribution": {
+        "name": "Default Currency Distribution",
+        "hint": "How currency is distributed by default. Can be overridden per session in Lottery Setup.",
+        "equal": "Split Equally Among Players",
+        "stash": "Send to Party Stash"
+      },
+      "lotteryTimeout": {
+        "name": "Player Roll Timeout (seconds)",
+        "hint": "Seconds players have to roll or pass before the GM can force-resolve the item. Set to 0 to disable the timer."
+      },
+      "dnd5e": {
+        "tableEdition": {
+          "name": "D&D 5e Table Edition",
+          "hint": "Which edition of the DMG treasure tables to use by default. Can be overridden per roll in the generation dialog."
+        }
+      },
+      "pf2e": {
+        "includeUncommon": {
+          "name": "PF2e: Include Uncommon Items",
+          "hint": "Allow uncommon items to appear in generated loot."
+        },
+        "includeRare": {
+          "name": "PF2e: Include Rare Items",
+          "hint": "Allow rare items to appear in generated loot."
+        }
+      }
+    },
+
+    "dnd5e": {
+      "field": {
+        "treasureType": "Treasure Type",
+        "crRange": "CR Range",
+        "creatureCount": "Number of Creatures",
+        "creatureCountHint": "How many individual creatures' loot to roll. Each rolls separately on the individual table.",
+        "tableEdition": "Table Edition",
+        "tableEditionHint": "Override the global table edition for this roll only."
+      },
+      "treasureType": {
+        "individual": "Individual Treasure",
+        "hoard": "Treasure Hoard"
+      },
+      "cr": {
+        "0_4": "CR 0–4",
+        "5_10": "CR 5–10",
+        "11_16": "CR 11–16",
+        "17plus": "CR 17+"
+      },
+      "edition": {
+        "default": "Use Module Setting",
+        "2014": "2014 DMG",
+        "2024": "2024 DMG"
+      }
+    },
+
+    "pf2e": {
+      "field": {
+        "partyLevel": "Party Level",
+        "partySize": "Party Size",
+        "partySizeHint": "Number of players (base 4). Adjusts treasure budget per the GM Core table.",
+        "lootScope": "Loot Scope",
+        "customBudget": "Custom Budget (gp)",
+        "customBudgetHint": "Total gold piece budget to allocate.",
+        "includeUncommon": "Include Uncommon Items",
+        "includeRare": "Include Rare Items"
+      },
+      "lootScope": {
+        "full": "Full Level Budget",
+        "encounter": "Single Encounter (~1/10 level)",
+        "custom": "Custom Budget"
+      }
+    },
+
+    "lottery": {
+      "setupTitle": "Lottery Setup",
+      "gmMonitorTitle": "Lottery — GM Monitor",
+      "currency": "Currency",
+      "currencyEqual": "Split equally",
+      "currencyStash": "Send to stash",
+      "partyStash": "Party Stash",
+      "dropActorHere": "Drag an actor here to set as party stash",
+      "noStashWarning": "No party stash configured. Configure one in Module Settings.",
+      "items": "Items",
+      "noItems": "No items were generated.",
+      "startButton": "Start Lottery",
+      "itemNotInCompendium": "(not found in compendium — will be listed as text)",
+      "rollTitle": "Item Lottery",
+      "playerResponses": "Player Responses",
+      "noActivePlayers": "No active players with characters.",
+      "statusWaiting": "Waiting…",
+      "statusPassed": "Passed",
+      "statusRolled": "Rolled: {n}",
+      "forceResolve": "Force Resolve",
+      "upcomingItems": "Up Next",
+      "dest": {
+        "lottery": "Lottery (roll-off)",
+        "stash": "Party stash",
+        "discard": "Discard"
+      },
+      "saveForLater": "Save for Later"
+    },
+
+    "player": {
+      "tieBreaker": "Tie Breaker — Roll Again!",
+      "rollButton": "Roll for It",
+      "passButton": "Pass",
+      "youRolled": "You rolled:",
+      "timeLeft": "Time remaining:",
+      "itemProgress": "Item"
+    },
+
+    "chat": {
+      "summaryTitle": "Loot Distribution Summary",
+      "coinsLabel": "Currency:",
+      "splitEqually": "split equally",
+      "sentToStash": "sent to stash",
+      "winnersLabel": "Item Winners:",
+      "stashLabel": "Added to Stash:",
+      "currencyDistributed": "{perPlayer} each distributed to {count} players.",
+      "itemPassed": "All players passed on {item} — sent to stash.",
+      "itemWon": "{player} wins {item}! (rolled {roll})",
+      "playerRolledFor": "Rolling for {item}"
+    },
+
+    "notify": {
+      "playerWon": "{player} won {item}!",
+      "youWon": "You won {item}! It has been added to your character sheet."
+    },
+
+    "hub": {
+      "title": "Loot Roller",
+      "treasure": {
+        "title": "Treasure Hoard",
+        "desc": "Roll random loot from DMG or system tables."
+      },
+      "quest": {
+        "title": "Quest Rewards",
+        "desc": "Hand-pick items one at a time for a quest reward."
+      },
+      "shop": {
+        "title": "Shop Inventory",
+        "desc": "Generate a bulk inventory for a merchant or shop."
+      },
+      "lists": {
+        "title": "Saved Lists",
+        "desc": "Browse and award previously saved loot lists."
+      }
+    },
+
+    "quest": {
+      "title": "Quest Reward Builder",
+      "rarity": "Rarity",
+      "itemTypes": "Item Types",
+      "itemTypesHint": "(none = any type)",
+      "rollFirst": "Roll for Item",
+      "rollAgain": "Roll Again",
+      "rollPrompt": "Configure filters above, then roll for your first item.",
+      "searching": "Searching compendium…",
+      "noResults": "No items found matching your filters. Try adjusting the rarity or types.",
+      "addItem": "Add to Rewards",
+      "reroll": "Skip / Reroll",
+      "removeItem": "Remove",
+      "rewardList": "Reward List",
+      "distribute": "Distribute Items",
+      "saveForLater": "Save for Later",
+      "noItems": "No items in the reward list yet."
+    },
+
+    "shop": {
+      "title": "Shop Inventory Generator",
+      "shopName": "Shop Name",
+      "shopNamePlaceholder": "e.g. Bartholomew's Curios",
+      "itemCount": "Number of Items",
+      "rarities": "Rarities",
+      "itemTypes": "Item Types",
+      "generate": "Generate Inventory",
+      "generating": "Generating…",
+      "inventory": "Inventory",
+      "createShop": "Create Shop Actor",
+      "created": "Created \"{name}\" with {count} items.",
+      "createFailed": "Failed to create shop actor. Check the console for details.",
+      "saveForLater": "Save for Later",
+      "noItems": "Generate an inventory first."
+    },
+
+    "savedLists": {
+      "title": "Saved Loot Lists",
+      "empty": "No saved lists yet.",
+      "emptyHint": "Save a loot list from the Quest or Shop generators, or from Lottery Setup.",
+      "items": "items",
+      "award": "Award",
+      "rename": "Rename",
+      "delete": "Delete",
+      "save": "Save",
+      "namePrompt": "Save Loot List",
+      "nameLabel": "List Name",
+      "renamePrompt": "Rename List",
+      "saved": "Saved list \"{name}\".",
+      "deleteConfirmTitle": "Delete List",
+      "deleteConfirmBody": "Delete the list <strong>{name}</strong>? This cannot be undone.",
+      "category": {
+        "quest": "Quest Reward",
+        "shop": "Shop",
+        "custom": "Custom"
+      }
+    },
+
+    "itemType": {
+      "weapon":     "Weapons",
+      "equipment":  "Equipment",
+      "armor":      "Armor",
+      "shield":     "Shields",
+      "consumable": "Consumables",
+      "loot":       "Loot / Gems",
+      "tool":       "Tools",
+      "treasure":   "Treasure"
+    },
+
+    "rarity": {
+      "common":    "Common",
+      "uncommon":  "Uncommon",
+      "rare":      "Rare",
+      "veryRare":  "Very Rare",
+      "legendary": "Legendary",
+      "unique":    "Unique"
+    }
+  }
+}

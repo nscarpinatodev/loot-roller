@@ -1,0 +1,42 @@
+{{!-- Saved Lists — browse, award, rename, or delete saved loot lists --}}
+<div class="saved-lists-content">
+
+  {{#if isEmpty}}
+    <div class="saved-lists-empty">
+      <i class="fa-solid fa-list-ul"></i>
+      <p>{{localize "LOOTROLLER.savedLists.empty"}}</p>
+      <p class="hint">{{localize "LOOTROLLER.savedLists.emptyHint"}}</p>
+    </div>
+  {{else}}
+    <div class="saved-list-items">
+      {{#each lists}}
+        <div class="saved-list-row">
+          <div class="saved-list-info">
+            <span class="saved-list-name">{{this.name}}</span>
+            <div class="saved-list-meta">
+              <span class="saved-list-category">{{localize this.categoryLabel}}</span>
+              <span class="saved-list-count">{{this.itemCount}} {{localize "LOOTROLLER.savedLists.items"}}</span>
+              <span class="saved-list-date">{{this.createdDate}}</span>
+            </div>
+          </div>
+          <div class="saved-list-actions">
+            <button type="button" class="btn-award-list" data-action="award-list" data-id="{{this.id}}"
+              title="{{localize 'LOOTROLLER.savedLists.award'}}">
+              <i class="fa-solid fa-dice-d20"></i>
+              {{localize "LOOTROLLER.savedLists.award"}}
+            </button>
+            <button type="button" class="btn-icon" data-action="rename-list" data-id="{{this.id}}"
+              title="{{localize 'LOOTROLLER.savedLists.rename'}}">
+              <i class="fa-solid fa-pencil"></i>
+            </button>
+            <button type="button" class="btn-icon btn-icon-danger" data-action="delete-list" data-id="{{this.id}}"
+              title="{{localize 'LOOTROLLER.savedLists.delete'}}">
+              <i class="fa-solid fa-trash"></i>
+            </button>
+          </div>
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+
+</div>

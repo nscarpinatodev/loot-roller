@@ -1,0 +1,43 @@
+{{!-- Lottery completion summary chat card --}}
+<div class="loot-roller-chat">
+  <div class="chat-header">
+    <i class="fa-solid fa-treasure-chest"></i>
+    <h3>{{localize "LOOTROLLER.chat.summaryTitle"}}</h3>
+  </div>
+
+  {{#if formattedCoins}}
+    <div class="chat-coins">
+      <strong>{{localize "LOOTROLLER.chat.coinsLabel"}}</strong>
+      <span>{{formattedCoins}}</span>
+      <span class="dist-mode">
+        ({{#if (lootrollerEq currencyMode "equal")}}{{localize "LOOTROLLER.chat.splitEqually"}}{{else}}{{localize "LOOTROLLER.chat.sentToStash"}}{{/if}})
+      </span>
+    </div>
+  {{/if}}
+
+  {{#if summary.length}}
+    <div class="chat-winners">
+      <strong>{{localize "LOOTROLLER.chat.winnersLabel"}}</strong>
+      <ul>
+        {{#each summary}}
+          <li>
+            <span class="winner-item">{{this.item.name}}</span>
+            <span class="winner-arrow">→</span>
+            <span class="winner-name">{{this.winnerName}}</span>
+          </li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+
+  {{#if stashItems.length}}
+    <div class="chat-stash">
+      <strong>{{localize "LOOTROLLER.chat.stashLabel"}}</strong>
+      <ul>
+        {{#each stashItems}}
+          <li>{{this.name}}</li>
+        {{/each}}
+      </ul>
+    </div>
+  {{/if}}
+</div>

@@ -1,0 +1,61 @@
+{{!-- GM lottery monitor --}}
+<div class="lottery-gm-content">
+
+  <div class="lottery-progress">
+    Item {{currentIndex}} of {{total}}
+  </div>
+
+  {{#if isTieBreaker}}
+    <div class="tiebreaker-banner">
+      <i class="fa-solid fa-handshake-angle"></i>
+      {{localize "LOOTROLLER.player.tieBreaker"}}
+    </div>
+  {{/if}}
+
+  {{#if currentItem}}
+    <div class="item-card">
+      <img class="item-img" src="{{currentItem.img}}" alt="{{currentItem.name}}" />
+      <div class="item-details">
+        <h2 class="item-name">{{currentItem.name}}</h2>
+        {{#if currentItem.rarity}}
+          <span class="item-rarity {{lootrollerRarityClass currentItem.rarity}}">{{currentItem.rarity}}</span>
+        {{/if}}
+      </div>
+    </div>
+  {{/if}}
+
+  <div class="player-statuses">
+    <h4>{{localize "LOOTROLLER.lottery.playerResponses"}}</h4>
+    {{#each playerStatuses}}
+      <div class="player-status player-status-{{this.statusClass}}">
+        <i class="fa-solid {{this.icon}}"></i>
+        <span class="player-name">{{this.name}}</span>
+        <span class="player-response">{{this.label}}</span>
+      </div>
+    {{else}}
+      <p class="hint">{{localize "LOOTROLLER.lottery.noActivePlayers"}}</p>
+    {{/each}}
+  </div>
+
+  {{#if canForceResolve}}
+    <div class="gm-actions">
+      <button type="button" data-action="force-resolve" class="btn-force-resolve">
+        <i class="fa-solid fa-gavel"></i>
+        {{localize "LOOTROLLER.lottery.forceResolve"}}
+      </button>
+    </div>
+  {{/if}}
+
+  {{#if upcoming.length}}
+    <div class="upcoming-items">
+      <h4>{{localize "LOOTROLLER.lottery.upcomingItems"}}</h4>
+      {{#each upcoming}}
+        <div class="upcoming-item">
+          <img src="{{this.img}}" alt="{{this.name}}" />
+          <span>{{this.name}}</span>
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+
+</div>

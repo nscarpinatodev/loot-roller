@@ -1,0 +1,192 @@
+/**
+ * QuestGeneratorApp — interactive quest reward builder.
+ *
+ * The GM picks rarity and item type filters, then rolls one item at a time.
+ * Each item can be added to the reward list or skipped. The accumulated list
+ * can then be distributed via the lottery or saved for later.
+ */
+
+import { LootRoller }      from "../api.js";
+import { LootListManager } from "../loot-list-manager.js";
+import { LotterySetupApp } from "./lottery-setup-app.js";
+
+const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
+
+export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) {
+  static DEFAULT_OPTIONS = {
+    id: "quest-generator-app",
+    classes: ["loot-roller", "quest-generator"],
+    window: { title: "LOOTROLLER.quest.title", icon: "fa-solid fa-scroll", resizable: false },
+    position: { width: 480, height: "auto" },
+  };
+
+  static PARTS = {
+    content: { template: "modules/loot-roller/templates/quest-generator.hbs" },
+  };
+
+  constructor(options = {}) {
+    super(options);
+    this._rarity     = "uncommon";
+    this._types      = [];            // empty = all types
+    this._current    = null;          // current Item document or stub
+    this._items      = [];            // accumulated reward list
+    this._searching  = false;
+    this._noResults  = false;
+    this._rolled     = false;         // whether a roll has been attempted yet
+  }
+
+  async _prepareContext(options) {
+    const adapter   = LootRoller.getAdapter();
+    const rarities  = adapter?.getRarities?.()  ?? [];
+    const itemTypes = adapter?.getItemTypes?.() ?? [];
+
+    return {
+      rarities,
+      itemTypes,
+      selectedRarity: this._rarity,
+      selectedTypes:  this._types,
+      current: this._current
+        ? {
+            name:   this._current.name,
+            img:    this._current.img ?? "icons/svg/item-bag.svg",
+            rarity: this._current.system?.rarity ?? this._current.rarity ?? "common",
+            type:   this._current.type,
+            stub:   !!this._current.stub,
+          }
+        : null,
+      items: this._items.map((item, idx) => ({
+        idx,
+        name:   item.name,
+        img:    item.img ?? "icons/svg/item-bag.svg",
+        rarity: item.system?.rarity ?? item.rarity ?? "common",
+        stub:   !!item.stub,
+      })),
+      searching:  this._searching,
+      noResults:  this._noResults,
+      rolled:     this._rolled,
+      hasAdapter: !!adapter,
+    };
+  }
+
+  _onRender(context, options) {
+    super._onRender?.(context, options);
+
+    // Rarity selector
+    this.element.querySelectorAll("[data-action=set-rarity]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        this._rarity = btn.dataset.rarity;
+        this.render(false);
+      });
+    });
+
+    // Item type toggles
+    this.element.querySelectorAll("[data-action=toggle-type]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const type = btn.dataset.itemType;
+        if (this._types.includes(type)) {
+          this._types = this._types.filter((t) => t !== type);
+        } else {
+          this._types.push(type);
+        }
+        this.render(false);
+      });
+    });
+
+    this.element.querySelector("[data-action=roll-item]")
+      ?.addEventListener("click", () => this._rollItem());
+
+    this.element.querySelector("[data-action=add-item]")
+      ?.addEventListener("click", () => this._addItem());
+
+    this.element.querySelectorAll("[data-action=remove-item]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const idx = parseInt(btn.dataset.idx);
+        this._items.splice(idx, 1);
+        this.render(false);
+      });
+    });
+
+    this.element.querySelector("[data-action=distribute]")
+      ?.addEventListener("click", () => this._distribute());
+
+    this.element.querySelector("[data-action=save-list]")
+      ?.addEventListener("click", () => this._saveList());
+  }
+
+  async _rollItem() {
+    const adapter = LootRoller.getAdapter();
+    if (!adapter) return;
+
+    this._searching = true;
+    this._noResults = false;
+    this._current   = null;
+    this._rolled    = true;
+    this.render(false);
+
+    try {
+      const types        = this._types.length ? this._types : null;
+      const excludeNames = new Set(this._items.map((i) => i.name).filter(Boolean));
+      const results      = await adapter.findItems({
+        rarities: [this._rarity],
+        types,
+        limit: 1,
+        excludeNames,
+      });
+
+      if (results.length) {
+        this._current   = results[0];
+        this._noResults = false;
+      } else {
+        this._noResults = true;
+      }
+    } catch (err) {
+      console.error("LootRoller | Quest roll error:", err);
+      this._noResults = true;
+    } finally {
+      this._searching = false;
+      this.render(false);
+    }
+  }
+
+  async _addItem() {
+    if (!this._current) return;
+    this._items.push(this._current);
+    this._current = null;
+    this.render(false);
+    await this._rollItem();
+  }
+
+  async _distribute() {
+    if (!this._items.length) {
+      ui.notifications.warn(game.i18n.localize("LOOTROLLER.quest.noItems"));
+      return;
+    }
+    this.close();
+    new LotterySetupApp({ coins: {}, items: this._items }).render(true);
+  }
+
+  async _saveList() {
+    if (!this._items.length) {
+      ui.notifications.warn(game.i18n.localize("LOOTROLLER.quest.noItems"));
+      return;
+    }
+    const name = await this._promptListName("");
+    if (!name) return;
+    await LootListManager.save(name, { items: this._items, category: "quest" });
+    ui.notifications.info(game.i18n.format("LOOTROLLER.savedLists.saved", { name }));
+  }
+
+  /** Prompt the GM for a list name via a simple dialog. Returns null if cancelled. */
+  async _promptListName(defaultValue = "") {
+    return Dialog.prompt({
+      title: game.i18n.localize("LOOTROLLER.savedLists.namePrompt"),
+      content: `<div class="form-group">
+        <label>${game.i18n.localize("LOOTROLLER.savedLists.nameLabel")}</label>
+        <input type="text" name="listName" value="${defaultValue}" autofocus />
+      </div>`,
+      label: game.i18n.localize("LOOTROLLER.savedLists.save"),
+      callback: (html) => html.find("[name=listName]").val().trim(),
+      options: { width: 320 },
+    }).catch(() => null);
+  }
+}

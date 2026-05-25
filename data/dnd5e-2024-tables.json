@@ -1,0 +1,350 @@
+{
+  "_source": "XDMG (2024 Dungeon Master's Guide), data verified via 5e.tools/lootgen.html",
+  "_note": "The 2024 DMG redesigned treasure generation. Individual treasure is a single coin denomination. Hoard magic items use a 'randomByLevel' approach — items are randomly selected from a flat rarity pool (Arcana tables) keyed to CR, not rolled on named d100 sub-tables as in 2014. Gem/art object values and art names also changed.",
+
+  "individual": {
+    "_note": "Source: XDMG p.120. Each CR bracket produces a single coin denomination — much simpler than 2014.",
+    "cr0_4": {
+      "dice": "d100",
+      "entries": [
+        { "min": 1, "max": 100, "coins": { "gp": "3d6" } }
+      ]
+    },
+    "cr5_10": {
+      "dice": "d100",
+      "entries": [
+        { "min": 1, "max": 100, "coins": { "gp": "2d8*10" } }
+      ]
+    },
+    "cr11_16": {
+      "dice": "d100",
+      "entries": [
+        { "min": 1, "max": 100, "coins": { "pp": "2d10*10" } }
+      ]
+    },
+    "cr17plus": {
+      "dice": "d100",
+      "entries": [
+        { "min": 1, "max": 100, "coins": { "pp": "2d8*100" } }
+      ]
+    }
+  },
+
+  "hoard": {
+    "_note": "Source: XDMG p.120/138. Hoard magic items are selected randomly from the Arcana pool at an appropriate rarity tier (see magicItems below). Count is rolled per bracket; rarity weighting is used to pick from the Arcana lists.",
+    "cr0_4": {
+      "coins": { "gp": "2d4*100" },
+      "magicItems": {
+        "count": "1d4-1",
+        "rarities": ["common", "uncommon"]
+      }
+    },
+    "cr5_10": {
+      "coins": { "gp": "8d10*100" },
+      "magicItems": {
+        "count": "1d3",
+        "rarities": ["uncommon", "rare"]
+      }
+    },
+    "cr11_16": {
+      "coins": { "gp": "8d8*1000" },
+      "magicItems": {
+        "count": "1d4",
+        "rarities": ["rare", "veryRare"]
+      }
+    },
+    "cr17plus": {
+      "coins": { "gp": "6d10*10000" },
+      "magicItems": {
+        "count": "1d6",
+        "rarities": ["veryRare", "legendary"]
+      }
+    }
+  },
+
+  "gems": {
+    "_note": "Source: XDMG p.214. Gem type is determined by GP value tier.",
+    "10":   ["Azurite", "Banded agate", "Blue quartz", "Eye agate", "Hematite", "Lapis lazuli", "Malachite", "Moss agate", "Obsidian", "Rhodochrosite", "Tiger eye", "Turquoise"],
+    "50":   ["Bloodstone", "Carnelian", "Chalcedony", "Chrysoprase", "Citrine", "Jasper", "Moonstone", "Onyx", "Quartz", "Sardonyx", "Star rose quartz", "Zircon"],
+    "100":  ["Amber", "Amethyst", "Chrysoberyl", "Coral", "Garnet", "Jade", "Jet", "Pearl", "Spinel", "Tourmaline"],
+    "500":  ["Alexandrite", "Aquamarine", "Black pearl", "Blue spinel", "Peridot", "Topaz"],
+    "1000": ["Black opal", "Blue sapphire", "Emerald", "Fire opal", "Opal", "Star ruby", "Star sapphire", "Yellow sapphire"],
+    "5000": ["Black sapphire", "Diamond", "Jacinth", "Ruby"]
+  },
+
+  "artObjects": {
+    "_note": "Source: XDMG p.215.",
+    "25":   ["Silver ewer", "Carved bone statuette", "Gold bracelet", "Cloth-of-gold vestments", "Black velvet mask stitched with silver thread", "Copper chalice with silver filigree", "Pair of engraved bone dice", "Handheld mirror set in a painted wooden frame", "Embroidered silk handkerchief", "Gold locket with a painted portrait inside"],
+    "250":  ["Gold ring set with bloodstones", "Carved ivory statuette", "Bejeweled gold bracelet", "Silver necklace with a gemstone pendant", "Bronze crown", "Silk vestments with gold embroidery", "Well-made tapestry that is 10 feet by 10 feet", "Brass mug with jade inlay", "Box of turquoise animal figurines", "Gold birdcage with electrum filigree"],
+    "750":  ["Silver chalice set with moonstones", "Bundle of sheet music representing the lost dirges of a famous composer", "Carved wooden harp with ivory inlay and zircon gems", "Gold idol", "Gold comb shaped like a dragon with red garnets as eyes", "Bottle stopper cork embossed with gold leaf and set with amethysts", "Detailed, life-sized dragonborn skull cast in electrum", "Silver and gold brooch", "Obsidian statuette with gold fittings and inlay", "Painted gold war mask"],
+    "2500": ["Fine gold chain set with a fire opal", "Old masterpiece painting", "Embroidered silk and velvet mantle set with numerous moonstones", "Platinum bracelet set with an emerald", "Embroidered glove set with jewel chips", "Jeweled anklet", "Gold music box", "Gold circlet set with four aquamarines", "Eye patch decorated with tiny blue sapphires and moonstones", "Necklace string of small pink pearls"],
+    "7500": ["Jeweled gold crown", "Jeweled platinum ring", "Gold statuette set with rubies", "Gold cup set with emeralds", "Gold jewelry box with platinum filigree", "Set of gold nesting dolls", "Jade game board with gold playing pieces", "Bejeweled ivory drinking horn with gold filigree", "Gilded royal coach or funeral barge", "Ceremonial gold armor with black pearls"]
+  },
+
+  "magicItems": {
+    "_note": "Source: XDMG p.326. The 2024 DMG uses flat Arcana lists by rarity — a random item is selected from the appropriate tier rather than rolled on a d100 sub-table. All items sourced from 5e.tools loot.json (XDMG entries).",
+    "_type": "list",
+
+    "arcanaCommon": {
+      "rarity": "common",
+      "_count": 36,
+      "items": [
+        "Bead of Nourishment",
+        "Bead of Refreshment",
+        "Candle of the Deep",
+        "Cloak of Billowing",
+        "Cloak of Many Fashions",
+        "Clothes of Mending",
+        "Dark Shard Amulet",
+        "Enduring Spellbook",
+        "Ersatz Eye",
+        "Hat of Vermin",
+        "Hat of Wizardry",
+        "Heward's Handy Spice Pouch",
+        "Horn of Silent Alarm",
+        "Instrument of Illusions",
+        "Instrument of Scribing",
+        "Lock of Trickery",
+        "Mystery Key",
+        "Orb of Direction",
+        "Orb of Time",
+        "Perfume of Bewitching",
+        "Pipe of Smoke Monsters",
+        "Potion of Climbing",
+        "Potion of Comprehension",
+        "Pot of Awakening",
+        "Prosthetic Limb",
+        "Rival Coin",
+        "Rope of Mending",
+        "Ruby of the War Mage",
+        "Spell Scroll (Cantrip or Level 1)",
+        "Staff of Adornment",
+        "Staff of Birdcalls",
+        "Staff of Flowers",
+        "Talking Doll",
+        "Tankard of Sobriety",
+        "Wand of Conducting",
+        "Wand of Pyrotechnics"
+      ]
+    },
+
+    "arcanaUncommon": {
+      "rarity": "uncommon",
+      "_count": 62,
+      "items": [
+        "Amulet of Proof against Detection and Location",
+        "Baba Yaga's Dancing Broom",
+        "Bag of Holding",
+        "Bag of Tricks",
+        "Brooch of Shielding",
+        "Broom of Flying",
+        "Cap of Water Breathing",
+        "Circlet of Blasting",
+        "Cloak of Protection",
+        "Cloak of the Manta Ray",
+        "Decanter of Endless Water",
+        "Deck of Illusions",
+        "Driftglobe",
+        "Dust of Disappearance",
+        "Dust of Dryness",
+        "Dust of Sneezing and Choking",
+        "Elemental Gem",
+        "Enspelled Staff (Cantrip or Level 1 Spell)",
+        "Eversmoking Bottle",
+        "Eyes of Charming",
+        "Eyes of Minute Seeing",
+        "Figurine of Wondrous Power (Silver Raven)",
+        "Gem of Brightness",
+        "Hag Eye",
+        "Hat of Disguise",
+        "Headband of Intellect",
+        "Helm of Comprehending Languages",
+        "Helm of Telepathy",
+        "Immovable Rod",
+        "Lantern of Revealing",
+        "Medallion of Thoughts",
+        "Mithral Armor",
+        "Necklace of Adaptation",
+        "Oil of Slipperiness",
+        "Pearl of Power",
+        "Periapt of Health",
+        "Philter of Love",
+        "Potion of Animal Friendship",
+        "Potion of Fire Breath",
+        "Potion of Hill Giant Strength",
+        "Potion of Growth",
+        "Potion of Poison",
+        "Potion of Resistance",
+        "Potion of Water Breathing",
+        "Quaal's Feather Token (Anchor, Fan, or Tree)",
+        "Ring of Mind Shielding",
+        "Robe of Useful Items",
+        "Rod of the Pact Keeper, +1",
+        "Rope of Climbing",
+        "Saddle of the Cavalier",
+        "Sending Stones",
+        "Slippers of Spider Climbing",
+        "Spell Scroll (Level 2 or 3 Spell)",
+        "Staff of the Adder",
+        "Staff of the Python",
+        "Wand of Magic Detection",
+        "Wand of Magic Missiles",
+        "Wand of Secrets",
+        "Wand of the War Mage, +1",
+        "Wand of Web",
+        "Wind Fan",
+        "Winged Boots"
+      ]
+    },
+
+    "arcanaRare": {
+      "rarity": "rare",
+      "_status": "INCOMPLETE — verify remaining items against XDMG p.326",
+      "items": [
+        "Bag of Beans",
+        "Bead of Force",
+        "Bowl of Commanding Water Elementals",
+        "Bracers of Defense",
+        "Brazier of Commanding Fire Elementals",
+        "Cape of the Mountebank",
+        "Censer of Controlling Air Elementals",
+        "Chime of Opening",
+        "Cloak of Displacement",
+        "Cloak of the Bat",
+        "Cube of Force",
+        "Daern's Instant Fortress",
+        "Dagger of Venom",
+        "Dragon Slayer",
+        "Elven Chain",
+        "Enspelled Staff (Level 2–4 Spell)",
+        "Figurine of Wondrous Power",
+        "Flame Tongue",
+        "Folding Boat",
+        "Gem of Seeing",
+        "Giant Slayer",
+        "Glamoured Studded Leather",
+        "Helm of Teleportation",
+        "Horn of Blasting",
+        "Horn of Valhalla (Silver or Brass)",
+        "Ioun Stone (Awareness, Protection, Reserve, or Sustenance)",
+        "Iron Bands of Bilarro",
+        "Mace of Disruption",
+        "Mace of Smiting",
+        "Mace of Terror",
+        "Mantle of Spell Resistance",
+        "Necklace of Fireballs",
+        "Necklace of Prayer Beads",
+        "Oil of Etherealness",
+        "Periapt of Proof against Poison",
+        "Portable Hole",
+        "Ring of Animal Influence",
+        "Ring of Evasion",
+        "Ring of Feather Falling",
+        "Ring of Free Action",
+        "Ring of Protection",
+        "Ring of Resistance",
+        "Ring of Spell Storing",
+        "Ring of the Ram",
+        "Ring of X-ray Vision",
+        "Robe of Eyes",
+        "Rod of Rulership",
+        "Rope of Entanglement",
+        "Scroll of Protection",
+        "Stone of Controlling Earth Elementals",
+        "Sun Blade",
+        "Sword of Life Stealing",
+        "Sword of Wounding",
+        "Tentacle Rod",
+        "Vicious Weapon",
+        "Wand of Binding",
+        "Wand of Enemy Detection",
+        "Wand of Fear",
+        "Wand of Fireballs",
+        "Wand of Lightning Bolts",
+        "Wand of Paralysis",
+        "Wand of the War Mage, +2",
+        "Wand of Wonder",
+        "Wings of Flying"
+      ]
+    },
+
+    "arcanaVeryRare": {
+      "rarity": "veryRare",
+      "_status": "INCOMPLETE — verify against XDMG p.326",
+      "items": [
+        "Amulet of the Planes",
+        "Carpet of Flying",
+        "Crystal Ball",
+        "Crystal Ball of Mind Reading",
+        "Crystal Ball of Telepathy",
+        "Crystal Ball of True Seeing",
+        "Enspelled Staff (Level 5–8 Spell)",
+        "Helm of Brilliance",
+        "Horn of Valhalla (Bronze)",
+        "Instrument of the Bards (Anstruth Harp)",
+        "Instrument of the Bards (Canaith Mandolin)",
+        "Instrument of the Bards (Cli Lyre)",
+        "Ioun Stone (Absorption, Agility, Fortitude, Insight, Intellect, Leadership, or Strength)",
+        "Manual of Bodily Health",
+        "Manual of Gainful Exercise",
+        "Manual of Quickness of Action",
+        "Mirror of Life Trapping",
+        "Nine Lives Stealer",
+        "Oathbow",
+        "Ring of Regeneration",
+        "Ring of Shooting Stars",
+        "Ring of Telekinesis",
+        "Robe of Scintillating Colors",
+        "Robe of Stars",
+        "Rod of Absorption",
+        "Rod of Alertness",
+        "Rod of Security",
+        "Scimitar of Speed",
+        "Staff of Fire",
+        "Staff of Frost",
+        "Staff of Power",
+        "Staff of Striking",
+        "Staff of Thunder and Lightning",
+        "Sword of Sharpness",
+        "Tome of Clear Thought",
+        "Tome of Leadership and Influence",
+        "Tome of Understanding",
+        "Wand of Polymorph",
+        "Wand of the War Mage, +3"
+      ]
+    },
+
+    "arcanaLegendary": {
+      "rarity": "legendary",
+      "_status": "INCOMPLETE — verify against XDMG p.326",
+      "items": [
+        "Apparatus of Kwalish",
+        "Axe of the Dwarvish Lords",
+        "Cloak of Invisibility",
+        "Crystal Ball of True Seeing",
+        "Deck of Many Things",
+        "Hammer of Thunderbolts",
+        "Instrument of the Bards (Ollamh Harp)",
+        "Ioun Stone (Greater Absorption)",
+        "Luck Blade",
+        "Ring of Djinni Summoning",
+        "Ring of Elemental Command",
+        "Ring of Invisibility",
+        "Ring of Spell Turning",
+        "Ring of Three Wishes",
+        "Rod of Lordly Might",
+        "Rod of Resurrection",
+        "Scarab of Protection",
+        "Sovereign Glue",
+        "Sphere of Annihilation",
+        "Staff of the Magi",
+        "Sword of Answering",
+        "Talisman of Pure Good",
+        "Talisman of Ultimate Evil",
+        "Universal Solvent",
+        "Vorpal Sword",
+        "Well of Many Worlds"
+      ]
+    }
+  }
+}

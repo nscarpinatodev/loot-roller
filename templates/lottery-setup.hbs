@@ -1,0 +1,90 @@
+{{!-- GM lottery setup: sort loot into lottery / stash / discard --}}
+<div class="lottery-setup-content">
+
+  {{!-- Currency row --}}
+  {{#if hasCoins}}
+    <div class="lottery-section coins-section">
+      <h3><i class="fa-solid fa-coins"></i> {{localize "LOOTROLLER.lottery.currency"}}</h3>
+      <div class="coins-row">
+        <span class="coins-amount">{{formattedCoins}}</span>
+        <div class="coin-destination">
+          <button type="button" class="currency-btn {{#if (lootrollerEq currencyMode 'equal')}}selected{{/if}}"
+            data-action="set-currency" data-mode="equal">
+            {{localize "LOOTROLLER.lottery.currencyEqual"}}
+          </button>
+          <button type="button" class="currency-btn {{#if (lootrollerEq currencyMode 'stash')}}selected{{/if}}"
+            data-action="set-currency" data-mode="stash">
+            {{localize "LOOTROLLER.lottery.currencyStash"}}
+          </button>
+        </div>
+      </div>
+    </div>
+  {{/if}}
+
+  {{!-- Party stash actor (read-only — configure in Module Settings) --}}
+  <div class="lottery-section stash-section">
+    <h3><i class="fa-solid fa-box"></i> {{localize "LOOTROLLER.lottery.partyStash"}}</h3>
+    {{#if stashActorName}}
+      <div class="stash-info">
+        <i class="fa-solid fa-user-group"></i>
+        <span class="stash-name">{{stashActorName}}</span>
+      </div>
+    {{else}}
+      <p class="hint warning">{{localize "LOOTROLLER.lottery.noStashWarning"}}</p>
+    {{/if}}
+  </div>
+
+  {{!-- Item list --}}
+  {{#if items.length}}
+    <div class="lottery-section items-section">
+      <h3><i class="fa-solid fa-list"></i> {{localize "LOOTROLLER.lottery.items"}}</h3>
+      <div class="item-list">
+        {{#each items}}
+          <div class="lottery-item {{#if this.stub}}stub{{/if}}">
+            <img class="item-img" src="{{this.img}}" alt="{{this.name}}" />
+            <div class="item-info">
+              <span class="item-name">{{this.name}}</span>
+              {{#if this.rarity}}
+                <span class="item-rarity {{lootrollerRarityClass this.rarity}}">{{this.rarity}}</span>
+              {{/if}}
+              {{#if this.stub}}
+                <span class="item-stub-note">{{localize "LOOTROLLER.lottery.itemNotInCompendium"}}</span>
+              {{/if}}
+            </div>
+            <div class="item-destination">
+              <button type="button" class="dest-btn dest-lottery {{#if (lootrollerEq this.dest 'lottery')}}selected{{/if}}"
+                data-action="set-dest" data-idx="{{this.idx}}" data-dest="lottery"
+                title="{{localize 'LOOTROLLER.lottery.dest.lottery'}}">
+                <i class="fa-solid fa-dice-d20"></i>
+              </button>
+              <button type="button" class="dest-btn dest-stash {{#if (lootrollerEq this.dest 'stash')}}selected{{/if}}"
+                data-action="set-dest" data-idx="{{this.idx}}" data-dest="stash"
+                title="{{localize 'LOOTROLLER.lottery.dest.stash'}}">
+                <i class="fa-solid fa-box"></i>
+              </button>
+              <button type="button" class="dest-btn dest-discard {{#if (lootrollerEq this.dest 'discard')}}selected{{/if}}"
+                data-action="set-dest" data-idx="{{this.idx}}" data-dest="discard"
+                title="{{localize 'LOOTROLLER.lottery.dest.discard'}}">
+                <i class="fa-solid fa-trash"></i>
+              </button>
+            </div>
+          </div>
+        {{/each}}
+      </div>
+    </div>
+  {{else}}
+    <p class="hint no-items">{{localize "LOOTROLLER.lottery.noItems"}}</p>
+  {{/if}}
+
+  <div class="form-footer">
+    <button type="button" class="btn-save-list" data-action="save-list">
+      <i class="fa-solid fa-floppy-disk"></i>
+      {{localize "LOOTROLLER.lottery.saveForLater"}}
+    </button>
+    <button type="submit" class="btn-start-lottery">
+      <i class="fa-solid fa-dice-d20"></i>
+      {{localize "LOOTROLLER.lottery.startButton"}}
+    </button>
+  </div>
+
+</div>

@@ -1,0 +1,20 @@
+{{!-- Party stash actor configuration --}}
+<div class="lottery-setup-content">
+  <p class="hint">{{localize "LOOTROLLER.settings.partyStashActor.hint"}}</p>
+
+  <div class="party-stash-drop" title="{{localize "LOOTROLLER.lottery.dropActorHere"}}">
+    {{#if stashActorName}}
+      {{#if stashActorImg}}
+        <img src="{{stashActorImg}}" width="36" height="36"
+          style="border-radius:4px;border:1px solid var(--color-border-light);object-fit:cover;" />
+      {{/if}}
+      <span class="stash-name">{{stashActorName}}</span>
+      <a class="stash-clear" data-action="clear-stash" title="Remove">
+        <i class="fa-solid fa-xmark"></i>
+      </a>
+    {{else}}
+      <i class="fa-solid fa-arrow-down"></i>
+      <span class="hint">{{localize "LOOTROLLER.lottery.dropActorHere"}}</span>
+    {{/if}}
+  </div>
+</div>

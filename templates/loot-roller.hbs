@@ -1,0 +1,54 @@
+{{!-- Main loot generation dialog --}}
+<div class="loot-roller-content">
+  {{#if hasAdapter}}
+    <div class="system-badge">
+      <i class="fa-solid fa-dice-d20"></i>
+      {{systemName}}
+    </div>
+
+    <div class="form-fields">
+      {{#each fields}}
+        {{!-- Skip fields whose showWhen condition doesn't match --}}
+        <div class="form-group loot-field" data-field-name="{{this.name}}" {{#if this.showWhen}}data-show-when-field="{{this.showWhen.field}}" data-show-when-value="{{this.showWhen.value}}"{{/if}}>
+          <label>{{localize this.label}}</label>
+
+          {{#if (lootrollerEq this.type "select")}}
+            <select name="{{this.name}}">
+              {{#each this.options}}
+                <option value="{{this.value}}" {{#if (lootrollerEq this.value ../default)}}selected{{/if}}>
+                  {{localize this.label}}
+                </option>
+              {{/each}}
+            </select>
+
+          {{else if (lootrollerEq this.type "number")}}
+            <input type="number" name="{{this.name}}"
+              value="{{this.default}}"
+              {{#if this.min}}min="{{this.min}}"{{/if}}
+              {{#if this.max}}max="{{this.max}}"{{/if}} />
+
+          {{else if (lootrollerEq this.type "checkbox")}}
+            <input type="checkbox" name="{{this.name}}" {{#if this.default}}checked{{/if}} />
+
+          {{/if}}
+
+          {{#if this.hint}}
+            <p class="hint">{{localize this.hint}}</p>
+          {{/if}}
+        </div>
+      {{/each}}
+    </div>
+
+    <div class="form-footer">
+      <button type="submit" class="btn-generate">
+        <i class="fa-solid fa-coins"></i>
+        {{localize "LOOTROLLER.app.generateButton"}}
+      </button>
+    </div>
+  {{else}}
+    <div class="no-adapter">
+      <i class="fa-solid fa-circle-exclamation"></i>
+      <p>{{localize "LOOTROLLER.warn.noAdapterDescription"}}</p>
+    </div>
+  {{/if}}
+</div>
