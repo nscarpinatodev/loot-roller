@@ -90,7 +90,10 @@ Hooks.once("init", () => {
   Handlebars.registerHelper("lootrollerEq", (a, b) => a === b);
   Handlebars.registerHelper("lootrollerIncludes", (arr, val) => Array.isArray(arr) && arr.includes(val));
   Handlebars.registerHelper("lootrollerRarityClass", (rarity) =>
-    (rarity ?? "").toLowerCase().replace(/\s+/g, "-")
+    (rarity ?? "")
+      .replace(/([A-Z])/g, (c) => `-${c.toLowerCase()}`) // camelCase → kebab
+      .replace(/\s+/g, "-")
+      .toLowerCase()
   );
 });
 
@@ -127,93 +130,59 @@ Hooks.once("ready", () => {
 });
 
 // ── GM Toolbar button ─────────────────────────────────────────────────────────
-
-Hooks.on("getSceneControlButtons", (controls) => {
-  if (!game.user?.isGM) return;
-
-  const title = game.i18n?.localize("LOOTROLLER.toolbar.openRoller") ?? "Loot Roller";
-
-  const tool = {
-    name: "loot-roller",
-    title,
-    icon: "fa-solid fa-coins",
-    visible: true,
-    button: true,
-    onClick: () => LootRoller.openRoller(),
-  };
-
-  if (Array.isArray(controls)) {
-    // Foundry v12: controls is an array of group objects
-    const token = controls.find((g) => g.name === "token");
-    if (!token) return;
-    if (Array.isArray(token.tools)) {
-      token.tools.push(tool);
-    } else {
-      token.tools ??= {};
-      token.tools["loot-roller"] = tool;
-    }
-  } else {
-    // Foundry v13+: controls is a plain object keyed by group name.
-    // Use direct property access — going through Object.values() returns
-    // references that may not survive Foundry's controls rebuild step.
-    if (!controls.token) return;
-    if (Array.isArray(controls.token.tools)) {
-      controls.token.tools.push(tool);
-    } else {
-      controls.token.tools ??= {};
-      controls.token.tools["loot-roller"] = tool;
-    }
-  }
-});
-
-// Fallback: DOM injection via MutationObserver.
 //
-// ApplicationV2-based apps (Foundry v13 SceneControls) fully replace their
-// inner HTML on every re-render, so a one-shot renderSceneControls injection
-// gets wiped on the next layer switch. We instead observe the #scene-controls
-// container for childList changes and re-inject whenever Foundry replaces the
-// inner content.
-//
-// We only start observing once the canvas is ready (controls exist in DOM).
-Hooks.once("canvasReady", () => {
-  if (!game.user?.isGM) return;
+// DOM injection into the v14 scene-controls-layers menu.
+// renderSceneControls fires after the ApplicationV2 SceneControls renders, and
+// the MutationObserver re-injects on every subsequent re-render (layer switches
+// wipe the inner HTML).
+{
+  let _observer = null;
 
-  const injectBtn = () => {
-    const sceneControls = document.getElementById("scene-controls");
-    if (!sceneControls) return;
+  const _inject = () => {
+    if (!game.user?.isGM) return;
 
-    // Already injected — nothing to do.
-    if (sceneControls.querySelector("[data-loot-roller-btn]")) return;
+    const host = document.getElementById("scene-controls")
+      ?? document.getElementById("controls");
+    if (!host) return;
 
-    // If getSceneControlButtons worked, the tool renders as [data-tool="loot-roller"].
-    if (sceneControls.querySelector('[data-tool="loot-roller"]')) return;
+    if (host.querySelector("[data-loot-roller-btn]")) return;
 
-    const title    = game.i18n?.localize("LOOTROLLER.toolbar.openRoller") ?? "Loot Roller";
-    const mainList = sceneControls.querySelector("ol.main-controls");
-    if (!mainList) return;
+    const title = game.i18n?.localize("LOOTROLLER.toolbar.openRoller") ?? "Loot Roller";
 
-    const btn = document.createElement("li");
-    btn.className = "scene-control loot-roller-control";
+    // v14 renders the layer list as <menu id="scene-controls-layers">
+    const list = host.querySelector("#scene-controls-layers")
+      ?? host.querySelector("menu[data-application-part='layers']")
+      ?? host.querySelector("menu")
+      ?? host.querySelector("ol")
+      ?? host.querySelector("ul")
+      ?? host;
+
+    // v14 structure: <li><button class="control ui-control icon fa-..."></button></li>
+    const li  = document.createElement("li");
+    const btn = document.createElement("button");
+    btn.type      = "button";
+    btn.className = "control ui-control icon fa-solid fa-coins loot-roller-control";
     btn.setAttribute("data-loot-roller-btn", "1");
     btn.setAttribute("data-tooltip", title);
     btn.setAttribute("aria-label", title);
-    btn.innerHTML   = `<i class="fa-solid fa-coins"></i>`;
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       LootRoller.openRoller();
     });
-    mainList.appendChild(btn);
+    li.appendChild(btn);
+    list.appendChild(li);
   };
 
-  injectBtn(); // Initial injection after canvas ready
-
-  // Re-inject after Foundry re-renders the controls (layer switches, etc.).
-  // Watch only direct children of #scene-controls so our own li append
-  // (which goes into ol.main-controls, not #scene-controls itself) doesn't
-  // trigger a loop.
-  const container = document.getElementById("scene-controls");
-  if (container) {
-    new MutationObserver(injectBtn).observe(container, { childList: true });
-  }
-});
+  Hooks.on("renderSceneControls", () => {
+    _inject();
+    if (!_observer) {
+      const host = document.getElementById("scene-controls")
+        ?? document.getElementById("controls");
+      if (host) {
+        _observer = new MutationObserver(_inject);
+        _observer.observe(host, { childList: true, subtree: true });
+      }
+    }
+  });
+}

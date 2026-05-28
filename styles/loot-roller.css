@@ -236,10 +236,11 @@
   text-transform: capitalize;
 }
 
-.item-rarity.uncommon { color: #1a7f37; }
-.item-rarity.rare     { color: #0550ae; }
+.item-rarity.common    { color: #c8c8c8; }
+.item-rarity.uncommon  { color: #1a7f37; }
+.item-rarity.rare      { color: #4a90d9; }
 .item-rarity.very-rare { color: #8250df; }
-.item-rarity.legendary { color: #bc4c00; }
+.item-rarity.legendary { color: #e07820; }
 
 .item-stub-note {
   font-size: 10px;
@@ -572,18 +573,18 @@
 /* ── Loot Hub ────────────────────────────────────────────── */
 
 .loot-hub-content {
-  padding: 12px 16px;
+  padding: 16px 20px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 14px;
   font-family: var(--font-primary);
 }
 
 .hub-system-badge {
-  font-size: 11px;
+  font-size: 12px;
   color: var(--color-text-light-7);
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.07em;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -593,21 +594,22 @@
 .hub-buttons {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .hub-btn {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
+  padding: 14px 16px;
+  gap: 0;
   background: transparent;
   border: 1px solid var(--color-border-light);
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
   text-align: left;
   transition: background 0.15s, border-color 0.15s;
   width: 100%;
+  box-sizing: border-box;
 }
 
 .hub-btn:hover:not(:disabled) {
@@ -621,23 +623,25 @@
 }
 
 .hub-btn-icon {
-  font-size: 20px;
-  width: 28px;
+  flex: 0 0 40px;
+  font-size: 24px;
   text-align: center;
   color: var(--color-text-light-7);
-  flex-shrink: 0;
 }
 
 .hub-btn-title {
+  flex: 0 0 160px;
+  padding-right: 16px;
   font-weight: bold;
-  font-size: 13px;
-  display: block;
+  font-size: 15px;
+  white-space: nowrap;
 }
 
 .hub-btn-desc {
-  font-size: 11px;
+  flex: 1;
+  font-size: 13px;
   color: var(--color-text-light-7);
-  display: block;
+  line-height: 1.4;
 }
 
 /* ── Quest Generator / Shop Generator shared ─────────────── */
@@ -705,11 +709,12 @@
 }
 
 /* Rarity-coloured buttons when selected */
-.rarity-btn.uncommon.selected { color: #1a7f37; border-color: #1a7f37; background: rgba(26,127,55,0.1); }
-.rarity-btn.rare.selected     { color: #0550ae; border-color: #0550ae; background: rgba(5,80,174,0.1); }
-.rarity-btn.very-rare.selected { color: #8250df; border-color: #8250df; background: rgba(130,80,223,0.1); }
-.rarity-btn.legendary.selected { color: #bc4c00; border-color: #bc4c00; background: rgba(188,76,0,0.1); }
-.rarity-btn.unique.selected    { color: #6f42c1; border-color: #6f42c1; background: rgba(111,66,193,0.1); }
+.rarity-btn.common.selected    { color: #e0e0e0; border-color: #e0e0e0; background: rgba(224,224,224,0.12); }
+.rarity-btn.uncommon.selected  { color: #1a7f37; border-color: #1a7f37; background: rgba(26,127,55,0.12); }
+.rarity-btn.rare.selected      { color: #4a90d9; border-color: #4a90d9; background: rgba(74,144,217,0.12); }
+.rarity-btn.very-rare.selected { color: #8250df; border-color: #8250df; background: rgba(130,80,223,0.12); }
+.rarity-btn.legendary.selected { color: #e07820; border-color: #e07820; background: rgba(224,120,32,0.12); }
+.rarity-btn.unique.selected    { color: #6f42c1; border-color: #6f42c1; background: rgba(111,66,193,0.12); }
 
 /* ── Quest item card ─────────────────────────────────────── */
 

@@ -13,8 +13,8 @@
       <label class="filter-label">{{localize "LOOTROLLER.quest.rarity"}}</label>
       <div class="filter-buttons">
         {{#each rarities}}
-          <button type="button" data-action="set-rarity" data-rarity="{{this.value}}"
-            class="filter-btn rarity-btn {{lootrollerRarityClass this.value}} {{#if (lootrollerEq this.value ../selectedRarity)}}selected{{/if}}">
+          <button type="button" data-action="toggle-rarity" data-rarity="{{this.value}}"
+            class="filter-btn rarity-btn {{lootrollerRarityClass this.value}} {{#if (lootrollerIncludes ../selectedRarities this.value)}}selected{{/if}}">
             {{localize this.label}}
           </button>
         {{/each}}

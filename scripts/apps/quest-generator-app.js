@@ -26,7 +26,7 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
 
   constructor(options = {}) {
     super(options);
-    this._rarity     = "uncommon";
+    this._rarities   = ["uncommon"];
     this._types      = [];            // empty = all types
     this._current    = null;          // current Item document or stub
     this._items      = [];            // accumulated reward list
@@ -43,8 +43,8 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
     return {
       rarities,
       itemTypes,
-      selectedRarity: this._rarity,
-      selectedTypes:  this._types,
+      selectedRarities: this._rarities,
+      selectedTypes:    this._types,
       current: this._current
         ? {
             name:   this._current.name,
@@ -71,10 +71,15 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
   _onRender(context, options) {
     super._onRender?.(context, options);
 
-    // Rarity selector
-    this.element.querySelectorAll("[data-action=set-rarity]").forEach((btn) => {
+    // Rarity toggles (multi-select; at least one must remain selected)
+    this.element.querySelectorAll("[data-action=toggle-rarity]").forEach((btn) => {
       btn.addEventListener("click", () => {
-        this._rarity = btn.dataset.rarity;
+        const rarity = btn.dataset.rarity;
+        if (this._rarities.includes(rarity)) {
+          if (this._rarities.length > 1) this._rarities = this._rarities.filter((r) => r !== rarity);
+        } else {
+          this._rarities.push(rarity);
+        }
         this.render(false);
       });
     });
@@ -127,7 +132,7 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
       const types        = this._types.length ? this._types : null;
       const excludeNames = new Set(this._items.map((i) => i.name).filter(Boolean));
       const results      = await adapter.findItems({
-        rarities: [this._rarity],
+        rarities: this._rarities,
         types,
         limit: 1,
         excludeNames,
