@@ -18,6 +18,17 @@
     },
 
     "settings": {
+      "compendiumSources": {
+        "name": "Compendium Sources",
+        "label": "Configure",
+        "hint": "Choose which Item compendiums are searched by the Quest and Shop generators.",
+        "title": "Compendium Sources",
+        "bodyHint": "Check the compendiums you want the Quest and Shop generators to search. Default packs are pre-selected based on your game system.",
+        "defaultBadge": "Default",
+        "resetDefaults": "Reset to Defaults",
+        "save": "Save",
+        "saved": "Compendium sources saved."
+      },
       "partyStashConfig": {
         "name": "Party Stash Actor",
         "label": "Configure",

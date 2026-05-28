@@ -21,6 +21,7 @@ import { PartyStashConfigApp }    from "./apps/party-stash-config-app.js";
 import { QuestGeneratorApp }      from "./apps/quest-generator-app.js";
 import { ShopGeneratorApp }       from "./apps/shop-generator-app.js";
 import { SavedListsApp }          from "./apps/saved-lists-app.js";
+import { CompendiumSettingsApp }  from "./apps/compendium-settings-app.js";
 
 // System adapters — only one will self-register based on game.system.id
 import "./systems/dnd5e-adapter.js";
@@ -32,6 +33,22 @@ const MODULE_ID = "loot-roller";
 
 Hooks.once("init", () => {
   // ── Global settings ──────────────────────────────────────────────────────
+  game.settings.registerMenu(MODULE_ID, "compendiumSources", {
+    name: "LOOTROLLER.settings.compendiumSources.name",
+    label: "LOOTROLLER.settings.compendiumSources.label",
+    hint: "LOOTROLLER.settings.compendiumSources.hint",
+    icon: "fa-solid fa-book",
+    type: CompendiumSettingsApp,
+    restricted: true,
+  });
+
+  game.settings.register(MODULE_ID, "compendiumPacks", {
+    scope: "world",
+    config: false,
+    type: Object,
+    default: {},
+  });
+
   game.settings.registerMenu(MODULE_ID, "partyStashConfig", {
     name: "LOOTROLLER.settings.partyStashConfig.name",
     label: "LOOTROLLER.settings.partyStashConfig.label",
@@ -105,7 +122,7 @@ Hooks.once("ready", () => {
 
   // ── Store app constructors on module for cross-file access ───────────────
   const mod = game.modules.get(MODULE_ID);
-  mod.apps = { LootHubApp, LootRollerApp, LotterySetupApp, LotteryPlayerApp, LotteryGMApp, QuestGeneratorApp, ShopGeneratorApp, SavedListsApp };
+  mod.apps = { LootHubApp, LootRollerApp, LotterySetupApp, LotteryPlayerApp, LotteryGMApp, QuestGeneratorApp, ShopGeneratorApp, SavedListsApp, CompendiumSettingsApp };
   mod.api  = LootRoller;
 
   // ── Register adapter-specific settings (i18n is ready now) ───────────────

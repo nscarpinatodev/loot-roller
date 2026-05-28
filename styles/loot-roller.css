@@ -896,6 +896,123 @@
   gap: 6px;
 }
 
+/* ── Compendium Settings ─────────────────────────────────── */
+
+.compendium-settings-content {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  font-family: var(--font-primary);
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+.comp-hint {
+  margin: 0;
+  color: var(--color-text-light-7);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.pack-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.pack-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.pack-row:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.pack-row input[type=checkbox] {
+  flex-shrink: 0;
+  width: 15px;
+  height: 15px;
+  cursor: pointer;
+}
+
+.pack-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.pack-title {
+  font-weight: bold;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pack-meta {
+  font-size: 11px;
+  color: var(--color-text-light-7);
+}
+
+.default-badge {
+  font-size: 10px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #4a90d9;
+  border: 1px solid #4a90d9;
+  border-radius: 3px;
+  padding: 1px 5px;
+  flex-shrink: 0;
+}
+
+.comp-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  border-top: 1px solid var(--color-border-light);
+  padding-top: 12px;
+}
+
+.comp-actions button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 13px;
+  border: 1px solid var(--color-border-light);
+  background: transparent;
+}
+
+.comp-actions button:hover {
+  border-color: var(--color-border-highlight);
+}
+
+.comp-actions .btn-save-primary {
+  background: #4a7a4a;
+  color: #fff;
+  border-color: #4a7a4a;
+  font-weight: bold;
+}
+
+.comp-actions .btn-save-primary:hover {
+  filter: brightness(1.1);
+}
+
 /* ── Saved Lists ─────────────────────────────────────────── */
 
 .saved-lists-content {

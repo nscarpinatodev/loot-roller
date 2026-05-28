@@ -393,9 +393,29 @@ export class DnD5eAdapter {
     ];
   }
 
+  /** Return the pack IDs to search, respecting the user's compendium selection setting. */
+  static getActivePacks() {
+    try {
+      const setting = game.settings.get("loot-roller", "compendiumPacks");
+      if (setting && Object.keys(setting).length) {
+        const enabled = Object.entries(setting)
+          .filter(([, on]) => on)
+          .map(([id]) => id)
+          .filter((id) => game.packs.has(id));
+        if (enabled.length) return enabled;
+      }
+    } catch {}
+    return PACK_IDS.filter((id) => game.packs.has(id));
+  }
+
+  /** Pre-build the item pool so the first roll is instant. */
+  static async warmPool() {
+    return CompendiumHelper.buildPool(DnD5eAdapter.getActivePacks());
+  }
+
   static async findItems({ rarities, types, limit = 1, excludeNames } = {}) {
     const rarityNorms = rarities?.map((r) => r.toLowerCase().replace(/\s+/g, ""));
-    return CompendiumHelper.findItems(PACK_IDS, {
+    return CompendiumHelper.findItems(DnD5eAdapter.getActivePacks(), {
       types: types?.length ? types : null,
       rarities: rarityNorms?.length ? rarityNorms : null,
       limit,

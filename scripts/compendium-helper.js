@@ -11,6 +11,7 @@
  */
 
 const _indexCache = new Map(); // packId → Collection
+const _poolCache  = new Map(); // sorted-packIds key → flat item pool array
 
 export const CompendiumHelper = {
   /**
@@ -34,6 +35,52 @@ export const CompendiumHelper = {
   /** Clear cached indexes (e.g., after a compendium reload). */
   clearCache() {
     _indexCache.clear();
+    _poolCache.clear();
+  },
+
+  /**
+   * Build a flat item pool from multiple packs' indexes and cache it.
+   * Subsequent calls for the same pack set return immediately from cache.
+   *
+   * @param {string[]} packIds
+   * @returns {Promise<Array<{packId,id,name,type,rarity,img}>>}
+   */
+  async buildPool(packIds) {
+    const key  = [...packIds].sort().join(",");
+    const pool = [];
+
+    for (const packId of packIds) {
+      const index = await this.getIndex(packId);
+      if (!index) continue;
+      for (const entry of index) {
+        pool.push({
+          packId,
+          id:     entry._id,
+          name:   entry.name,
+          type:   entry.type ?? "",
+          rarity: (entry.system?.rarity ?? "common").toLowerCase().replace(/\s+/g, ""),
+          img:    entry.img,
+        });
+      }
+    }
+
+    _poolCache.set(key, pool);
+    console.log(`LootRoller | Item pool ready: ${pool.length} entries across ${packIds.length} pack(s)`);
+    return pool;
+  },
+
+  /**
+   * Return the cached pool for these packs, or null if not yet built.
+   * @param {string[]} packIds
+   * @returns {Array|null}
+   */
+  getPool(packIds) {
+    return _poolCache.get([...packIds].sort().join(",")) ?? null;
+  },
+
+  /** Clear the item pool cache (call when pack selection changes). */
+  clearPool() {
+    _poolCache.clear();
   },
 
   /**
@@ -144,21 +191,14 @@ export const CompendiumHelper = {
   async findItems(packIds, { types = null, rarities = null, limit = 1, excludeNames = null } = {}) {
     const rarityNorms = rarities?.map((r) => r.toLowerCase().replace(/\s+/g, ""));
     const excluded    = excludeNames instanceof Set ? excludeNames : new Set(excludeNames ?? []);
-    const candidates  = [];
 
-    for (const packId of packIds) {
-      const index = await this.getIndex(packId);
-      if (!index) continue;
-      for (const entry of index) {
-        if (excluded.has(entry.name)) continue;
-        if (types && !types.includes(entry.type)) continue;
-        if (rarityNorms) {
-          const r = (entry.system?.rarity ?? "").toLowerCase().replace(/\s+/g, "");
-          if (!rarityNorms.includes(r)) continue;
-        }
-        candidates.push({ packId, id: entry._id, name: entry.name });
-      }
-    }
+    // Use the pre-built pool if ready; otherwise build it on demand.
+    const pool = this.getPool(packIds) ?? await this.buildPool(packIds);
+
+    let candidates = pool;
+    if (excluded.size)       candidates = candidates.filter((e) => !excluded.has(e.name));
+    if (types?.length)       candidates = candidates.filter((e) => types.includes(e.type));
+    if (rarityNorms?.length) candidates = candidates.filter((e) => rarityNorms.includes(e.rarity));
 
     if (!candidates.length) return [];
     const picks = candidates.sort(() => Math.random() - 0.5).slice(0, limit);

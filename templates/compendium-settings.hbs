@@ -1,0 +1,30 @@
+{{!-- Compendium Sources — select which Item compendiums are searched --}}
+<div class="compendium-settings-content">
+
+  <p class="comp-hint">{{localize "LOOTROLLER.settings.compendiumSources.bodyHint"}}</p>
+
+  <div class="pack-list">
+    {{#each packs}}
+      <label class="pack-row {{#if this.isDefault}}is-default{{/if}}">
+        <input type="checkbox" data-pack-id="{{this.id}}" {{#if this.enabled}}checked{{/if}} />
+        <span class="pack-info">
+          <span class="pack-title">{{this.title}}</span>
+          <span class="pack-meta">{{this.source}} &middot; {{this.count}} items</span>
+        </span>
+        {{#if this.isDefault}}<span class="default-badge">{{localize "LOOTROLLER.settings.compendiumSources.defaultBadge"}}</span>{{/if}}
+      </label>
+    {{/each}}
+  </div>
+
+  <div class="comp-actions">
+    <button type="button" data-action="reset-defaults">
+      <i class="fa-solid fa-rotate-left"></i>
+      {{localize "LOOTROLLER.settings.compendiumSources.resetDefaults"}}
+    </button>
+    <button type="button" class="btn-save-primary" data-action="save">
+      <i class="fa-solid fa-floppy-disk"></i>
+      {{localize "LOOTROLLER.settings.compendiumSources.save"}}
+    </button>
+  </div>
+
+</div>

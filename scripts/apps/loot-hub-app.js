@@ -13,6 +13,8 @@ import { SavedListsApp }       from "./saved-lists-app.js";
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
 export class LootHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
+  /** Tracks whether the item pool has been warmed this session. */
+  static _poolWarmed = false;
   static DEFAULT_OPTIONS = {
     id: "loot-hub-app",
     classes: ["loot-roller", "loot-hub"],
@@ -34,6 +36,12 @@ export class LootHubApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   _onRender(context, options) {
     super._onRender?.(context, options);
+
+    // Warm the item pool once per session so the first quest/shop roll is instant.
+    if (!LootHubApp._poolWarmed) {
+      LootHubApp._poolWarmed = true;
+      LootRoller.getAdapter()?.warmPool?.().catch(() => {});
+    }
 
     const open = (App) => new App().render(true);
 

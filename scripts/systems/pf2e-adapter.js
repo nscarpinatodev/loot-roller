@@ -234,9 +234,27 @@ export class PF2eAdapter {
     ];
   }
 
+  static getActivePacks() {
+    try {
+      const setting = game.settings.get("loot-roller", "compendiumPacks");
+      if (setting && Object.keys(setting).length) {
+        const enabled = Object.entries(setting)
+          .filter(([, on]) => on)
+          .map(([id]) => id)
+          .filter((id) => game.packs.has(id));
+        if (enabled.length) return enabled;
+      }
+    } catch {}
+    return PACK_IDS.filter((id) => game.packs.has(id));
+  }
+
+  static async warmPool() {
+    return CompendiumHelper.buildPool(PF2eAdapter.getActivePacks());
+  }
+
   static async findItems({ rarities, types, limit = 1, excludeNames } = {}) {
     const rarityNorms = rarities?.map((r) => r.toLowerCase().replace(/\s+/g, ""));
-    return CompendiumHelper.findItems(PACK_IDS, {
+    return CompendiumHelper.findItems(PF2eAdapter.getActivePacks(), {
       types: types?.length ? types : null,
       rarities: rarityNorms?.length ? rarityNorms : null,
       limit,
