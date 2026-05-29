@@ -18,6 +18,30 @@ import { formatCoins }    from "../currency-helper.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
+/**
+ * Return a generic display label for a mystified item based on its type.
+ * Used as system.unidentified.name so dnd5e hides the real item name.
+ */
+function _unidentifiedLabel(data) {
+  const sub = data.system?.type?.value ?? "";
+  switch (data.type) {
+    case "weapon":
+      return "Unidentified Weapon";
+    case "consumable":
+      if (sub === "scroll") return "Unidentified Scroll";
+      if (sub === "potion") return "Unidentified Potion";
+      if (sub === "wand")   return "Unidentified Wand";
+      if (sub === "rod")    return "Unidentified Rod";
+      return "Unidentified Item";
+    case "equipment":
+      if (sub === "armor")  return "Unidentified Armor";
+      if (sub === "shield") return "Unidentified Shield";
+      return "Unidentified Item";
+    default:
+      return "Unidentified Item";
+  }
+}
+
 export class LotterySetupApp extends HandlebarsApplicationMixin(ApplicationV2) {
   static DEFAULT_OPTIONS = {
     id: "lottery-setup-app",
@@ -162,10 +186,23 @@ export class LotterySetupApp extends HandlebarsApplicationMixin(ApplicationV2) {
       if (dest === "discard") continue;
 
       // Serialize to plain object so we can apply the mystify state
-      const raw  = items[i];
-      const data = raw.toObject?.() ?? { ...raw };
+      const raw        = items[i];
+      const data       = raw.toObject?.() ?? { ...raw };
+      const isMystified = app._mystified[i] ?? false;
       delete data._id;
-      if (data.system) data.system.identified = !(app._mystified[i] ?? false);
+
+      if (data.system) {
+        data.system.identified = !isMystified;
+
+        if (isMystified && data.system.unidentified !== undefined) {
+          // dnd5e hides the real name only when unidentified.name is non-empty.
+          // Preserve any name already set (e.g. from a well-authored compendium item);
+          // otherwise derive a generic label from the item type so the real name is hidden.
+          if (!data.system.unidentified.name) {
+            data.system.unidentified.name = _unidentifiedLabel(data);
+          }
+        }
+      }
 
       if (dest === "lottery") lotteryItems.push(data);
       else if (dest === "stash") stashItems.push(data);
