@@ -3,16 +3,141 @@
  *
  * Uses the Party Treasure by Level table (CRB/GM Core) for budget-based
  * loot generation. Items are drawn from the pf2e.equipment-srd compendium
- * filtered by item level and type.
+ * filtered by item level and rarity.
+ *
+ * PF2e-specific field paths (different from dnd5e):
+ *   rarity:         system.traits.rarity  ("common"|"uncommon"|"rare"|"unique")
+ *   item level:     system.level.value    (nested object, not a bare integer)
+ *   identification: system.identification.status  ("identified"|"unidentified")
+ *   unidentified name: system.identification.unidentified.name
+ *   consumable subtype: system.consumableType.value ("scroll"|"potion"|"elixir"|…)
  */
 
 import { LootRoller } from "../api.js";
-import { CompendiumHelper } from "../compendium-helper.js";
 
 const MODULE_ID = "loot-roller";
 
-// ── Party Treasure by Level (4-player base, GM Core p.XXX) ─────────────────
-// Format: [totalGP, permanentItems [[count,level],[count,level]], consumables [[count,level],...], baseGP, perExtraPC]
+// ── Item type sets ─────────────────────────────────────────────────────────────
+const PF2E_LOOT_TYPES  = new Set(["weapon", "armor", "shield", "equipment", "consumable", "treasure"]);
+const PERMANENT_TYPES  = ["weapon", "armor", "shield", "equipment"];
+const CONSUMABLE_TYPES = ["consumable"];
+
+// ── PF2e-specific index / pool cache ──────────────────────────────────────────
+// CompendiumHelper's buildPool reads system.rarity (dnd5e path), which doesn't
+// exist in PF2e.  We maintain a separate cache that reads the correct fields.
+
+const _pf2eIndexCache = new Map(); // packId → Collection
+const _pf2ePoolCache  = new Map(); // sorted-packIds key → array
+
+/**
+ * Fetch (and cache) a PF2e-correct index for one pack.
+ * Requests the fields PF2e actually uses; handles both nested-object and
+ * flat-dot-key index formats (which vary across Foundry versions).
+ */
+async function _getPf2eIndex(packId) {
+  if (_pf2eIndexCache.has(packId)) return _pf2eIndexCache.get(packId);
+  const pack = game.packs.get(packId);
+  if (!pack) return null;
+  const index = await pack.getIndex({
+    fields: [
+      "name", "type", "img",
+      "system.level",
+      "system.traits.rarity",
+      "system.consumableType",
+      "system.price",
+    ],
+  }).catch((err) => {
+    console.warn(`LootRoller | PF2e getIndex failed for "${packId}":`, err);
+    return null;
+  });
+  if (index) _pf2eIndexCache.set(packId, index);
+  return index;
+}
+
+/**
+ * Build (and cache) a flat array of loot-eligible PF2e items from multiple packs.
+ * Each entry carries the correctly extracted rarity, item level, and consumable type.
+ */
+async function _buildPf2ePool(packIds) {
+  const key = [...packIds].sort().join(",");
+  if (_pf2ePoolCache.has(key)) return _pf2ePoolCache.get(key);
+
+  const pool = [];
+  for (const packId of packIds) {
+    const index = await _getPf2eIndex(packId);
+    if (!index) continue;
+    for (const entry of index) {
+      if (!PF2E_LOOT_TYPES.has(entry.type)) continue;
+
+      // Rarity — PF2e: system.traits.rarity; fall back through dnd5e path too
+      const rarityRaw =
+        entry.system?.traits?.rarity ??
+        entry["system.traits.rarity"] ??
+        entry.system?.rarity ??
+        "common";
+      const rarity = String(rarityRaw).toLowerCase();
+
+      // Level — PF2e: system.level.value (nested); handle plain-number fallback
+      const levelObj = entry.system?.level ?? entry["system.level"];
+      const level    = levelObj?.value ?? (typeof levelObj === "number" ? levelObj : 0);
+
+      // Consumable subtype — PF2e: system.consumableType.value
+      const ctObj         = entry.system?.consumableType ?? entry["system.consumableType"];
+      const consumableType = (ctObj?.value ?? "").toLowerCase();
+
+      pool.push({ packId, id: entry._id, name: entry.name, type: entry.type, rarity, level, consumableType, img: entry.img });
+    }
+  }
+
+  _pf2ePoolCache.set(key, pool);
+  console.log(`LootRoller | PF2e pool ready: ${pool.length} items across ${packIds.length} pack(s)`);
+  return pool;
+}
+
+/** Clear all PF2e-specific caches (call when compendium selection changes). */
+function _clearPf2eCache() {
+  _pf2eIndexCache.clear();
+  _pf2ePoolCache.clear();
+}
+
+/**
+ * Filter the pool by item type category, level tolerance, and rarity flags.
+ * @param {object[]} pool
+ * @param {{ allowedTypes: string[], targetLevel: number, tolerance: number, includeUncommon: boolean, includeRare: boolean }} opts
+ */
+function _filterPool(pool, { allowedTypes, targetLevel, tolerance, includeUncommon, includeRare }) {
+  return pool.filter((e) => {
+    if (!allowedTypes.includes(e.type))             return false;
+    if (Math.abs(e.level - targetLevel) > tolerance) return false;
+    if (e.rarity === "unique")                       return false;
+    if (e.rarity === "rare"     && !includeRare)     return false;
+    if (e.rarity === "uncommon" && !includeUncommon) return false;
+    return true;
+  });
+}
+
+/**
+ * Return a generic display label for a PF2e mystified item based on its type.
+ * Used as system.identification.unidentified.name so PF2e hides the real name.
+ */
+function _pf2eUnidentifiedLabel(data) {
+  const consumableType = data.system?.consumableType?.value ?? "";
+  switch (data.type) {
+    case "weapon":     return "Unidentified Weapon";
+    case "armor":      return "Unidentified Armor";
+    case "shield":     return "Unidentified Shield";
+    case "consumable":
+      if (consumableType === "scroll") return "Unidentified Scroll";
+      if (consumableType === "potion") return "Unidentified Potion";
+      if (consumableType === "wand")   return "Unidentified Wand";
+      if (consumableType === "elixir") return "Unidentified Elixir";
+      return "Unidentified Consumable";
+    default:
+      return "Unidentified Item";
+  }
+}
+
+// ── Party Treasure by Level (4-player base, GM Core) ──────────────────────────
 const TREASURE_BY_LEVEL = {
   1:  { total: 175,    permanent: [[2,2],[2,1]],       consumables: [[2,2],[2,1],[3,1]],        currency: 40,    perPC: 10 },
   2:  { total: 300,    permanent: [[2,3],[2,2]],       consumables: [[2,3],[2,2],[2,1]],        currency: 70,    perPC: 18 },
@@ -37,11 +162,11 @@ const TREASURE_BY_LEVEL = {
 };
 
 const PACK_IDS = ["pf2e.equipment-srd", "pf2e.equipment"];
-const CONSUMABLE_TYPES = ["consumable"];
-const PERMANENT_TYPES  = ["weapon", "armor", "shield", "equipment"];
+
+// ── Adapter ───────────────────────────────────────────────────────────────────
 
 export class PF2eAdapter {
-  static systemId = "pf2e";
+  static systemId   = "pf2e";
   static systemName = "Pathfinder 2nd Edition";
 
   static getGeneratorFields() {
@@ -86,7 +211,7 @@ export class PF2eAdapter {
         name: "includeUncommon",
         label: "LOOTROLLER.pf2e.field.includeUncommon",
         type: "checkbox",
-        default: false,
+        default: true,
       },
       {
         name: "includeRare",
@@ -98,59 +223,40 @@ export class PF2eAdapter {
   }
 
   static async generateLoot(params) {
-    const partyLevel = Math.min(20, Math.max(1, parseInt(params.partyLevel) || 1));
-    const partySize  = Math.max(1, parseInt(params.partySize) || 4);
+    const partyLevel      = Math.min(20, Math.max(1, parseInt(params.partyLevel) || 1));
+    const partySize       = Math.max(1, parseInt(params.partySize) || 4);
     const includeUncommon = !!params.includeUncommon;
     const includeRare     = !!params.includeRare;
 
     const row = TREASURE_BY_LEVEL[partyLevel];
     if (!row) return { coins: {}, items: [] };
 
-    // Adjust for party size relative to base of 4
     const sizeAdjust = (partySize - 4) * row.perPC;
 
     let budgetGP;
     if (params.lootScope === "custom") {
       budgetGP = Math.max(0, parseInt(params.customBudget) || 0);
     } else if (params.lootScope === "encounter") {
-      // Rough encounter share: divide full level budget by ~10 encounters per level
       budgetGP = Math.round((row.total + sizeAdjust) / 10);
     } else {
       budgetGP = row.total + sizeAdjust;
     }
 
-    // Gather permanent and consumable item refs from the level table
     const itemRefs = [];
-    const baseRarityOpts = { includeUncommon, includeRare };
 
     for (const [count, level] of (row.permanent ?? [])) {
       for (let i = 0; i < count; i++) {
-        itemRefs.push({
-          name: null,
-          type: PERMANENT_TYPES[Math.floor(Math.random() * PERMANENT_TYPES.length)],
-          rarity: "common",
-          level,
-          _pf2eType: "permanent",
-          ...baseRarityOpts,
-        });
+        itemRefs.push({ name: null, type: null, rarity: "common", level, _pf2eType: "permanent", includeUncommon, includeRare });
       }
     }
 
     for (const [count, level] of (row.consumables ?? [])) {
       for (let i = 0; i < count; i++) {
-        itemRefs.push({
-          name: null,
-          type: "consumable",
-          rarity: "common",
-          level,
-          _pf2eType: "consumable",
-          ...baseRarityOpts,
-        });
+        itemRefs.push({ name: null, type: "consumable", rarity: "common", level, _pf2eType: "consumable", includeUncommon, includeRare });
       }
     }
 
-    // Currency is the remainder after items (use base currency from table)
-    const currencyGP = Math.min(budgetGP, row.currency + (sizeAdjust > 0 ? sizeAdjust : 0));
+    const currencyGP = Math.min(budgetGP, row.currency + Math.max(0, sizeAdjust));
     const coins = { gp: Math.floor(currencyGP), sp: 0, cp: 0 };
 
     return { coins, items: itemRefs };
@@ -158,32 +264,62 @@ export class PF2eAdapter {
 
   static async resolveItems(itemRefs) {
     const resolved = [];
-    for (const ref of itemRefs) {
-      const types = ref._pf2eType === "consumable" ? CONSUMABLE_TYPES : PERMANENT_TYPES;
-      let item = null;
+    const packs    = PF2eAdapter.getActivePacks();
+    const pool     = await _buildPf2ePool(packs);
 
-      for (const type of types) {
-        const results = await CompendiumHelper.findByLevelAndType(PACK_IDS, {
-          level: ref.level,
-          type,
-          includeUncommon: ref.includeUncommon,
-          includeRare: ref.includeRare,
-          limit: 1,
-        });
-        if (results.length) { item = results[0]; break; }
+    let includeUncommon = false;
+    let includeRare     = false;
+    try { includeUncommon = game.settings.get(MODULE_ID, "pf2e.includeUncommon"); } catch {}
+    try { includeRare     = game.settings.get(MODULE_ID, "pf2e.includeRare");     } catch {}
+
+    for (const ref of itemRefs) {
+      const isPermanent  = ref._pf2eType === "permanent";
+      const targetLevel  = ref.level ?? 1;
+      const allowedTypes = isPermanent ? PERMANENT_TYPES : CONSUMABLE_TYPES;
+
+      // Merge per-ref overrides with global settings
+      const wantUncommon = ref.includeUncommon ?? includeUncommon;
+      const wantRare     = ref.includeRare     ?? includeRare;
+
+      // Try ±1 level first, then widen to ±2 if nothing found
+      let candidates = _filterPool(pool, { allowedTypes, targetLevel, tolerance: 1, includeUncommon: wantUncommon, includeRare: wantRare });
+      if (!candidates.length) {
+        candidates = _filterPool(pool, { allowedTypes, targetLevel, tolerance: 2, includeUncommon: true, includeRare: wantRare });
       }
 
-      if (item) {
-        resolved.push(item);
+      if (!candidates.length) {
+        resolved.push({
+          name:  `${isPermanent ? "Item" : "Consumable"} (Level ${targetLevel})`,
+          type:  isPermanent ? "equipment" : "consumable",
+          level: targetLevel,
+          stub:  true,
+        });
+        continue;
+      }
+
+      const pick = candidates[Math.floor(Math.random() * candidates.length)];
+      const doc  = await game.packs.get(pick.packId)?.getDocument(pick.id).catch(() => null);
+
+      if (doc) {
+        // Rare and unique items arrive mystified
+        if (pick.rarity === "rare" || pick.rarity === "unique") {
+          const data = doc.toObject();
+          data._sourceUuid = doc.uuid;
+          PF2eAdapter.applyMystification(data);
+          resolved.push(data);
+        } else {
+          resolved.push(doc);
+        }
       } else {
         resolved.push({
-          name: `${ref._pf2eType === "consumable" ? "Consumable" : "Item"} (Level ${ref.level})`,
-          type: ref.type,
-          level: ref.level,
-          stub: true,
+          name:  `${isPermanent ? "Item" : "Consumable"} (Level ${targetLevel})`,
+          type:  pick.type,
+          level: targetLevel,
+          stub:  true,
         });
       }
     }
+
     return resolved;
   }
 
@@ -227,13 +363,14 @@ export class PF2eAdapter {
 
   static getRarities() {
     return [
-      { value: "common",    label: "LOOTROLLER.rarity.common" },
-      { value: "uncommon",  label: "LOOTROLLER.rarity.uncommon" },
-      { value: "rare",      label: "LOOTROLLER.rarity.rare" },
-      { value: "unique",    label: "LOOTROLLER.rarity.unique" },
+      { value: "common",   label: "LOOTROLLER.rarity.common" },
+      { value: "uncommon", label: "LOOTROLLER.rarity.uncommon" },
+      { value: "rare",     label: "LOOTROLLER.rarity.rare" },
+      { value: "unique",   label: "LOOTROLLER.rarity.unique" },
     ];
   }
 
+  /** Return the pack IDs to search, respecting the user's compendium selection. */
   static getActivePacks() {
     try {
       const setting = game.settings.get("loot-roller", "compendiumPacks");
@@ -248,18 +385,120 @@ export class PF2eAdapter {
     return PACK_IDS.filter((id) => game.packs.has(id));
   }
 
+  /** Pre-warm the PF2e pool (clears old cache first). */
   static async warmPool() {
-    return CompendiumHelper.buildPool(PF2eAdapter.getActivePacks());
+    _clearPf2eCache();
+    return _buildPf2ePool(PF2eAdapter.getActivePacks());
   }
 
-  static async findItems({ rarities, types, limit = 1, excludeNames } = {}) {
+  /**
+   * Describe the item-level filter this system uses in place of rarity.
+   * Returning a non-null value causes the quest/shop generators to show a
+   * level-range selector instead of rarity buttons.
+   *
+   * @returns {{ min: number, max: number, defaultMin: number, defaultMax: number }}
+   */
+  static getItemLevelRange() {
+    return { min: 1, max: 25, defaultMin: 1, defaultMax: 8 };
+  }
+
+  /**
+   * Find compendium items matching the given filters.
+   * Uses the PF2e-specific pool so rarity is read from system.traits.rarity.
+   *
+   * @param {{
+   *   rarities?:    string[],
+   *   types?:       string[],
+   *   limit?:       number,
+   *   excludeNames?: Set<string>,
+   *   levelRange?:  [number, number]   PF2e: [minLevel, maxLevel] replaces rarities
+   * }} params
+   */
+  static async findItems({ rarities, types, limit = 1, excludeNames, levelRange } = {}) {
+    const packs = PF2eAdapter.getActivePacks();
+    const pool  = await _buildPf2ePool(packs);
+
     const rarityNorms = rarities?.map((r) => r.toLowerCase().replace(/\s+/g, ""));
-    return CompendiumHelper.findItems(PF2eAdapter.getActivePacks(), {
-      types: types?.length ? types : null,
-      rarities: rarityNorms?.length ? rarityNorms : null,
-      limit,
-      excludeNames,
-    });
+    const excluded    = excludeNames instanceof Set ? excludeNames : new Set(excludeNames ?? []);
+
+    let candidates = pool;
+    if (excluded.size) candidates = candidates.filter((e) => !excluded.has(e.name));
+    if (types?.length) candidates = candidates.filter((e) => types.includes(e.type));
+
+    if (levelRange) {
+      // Level-range mode: filter by item level (PF2e primary filter)
+      const [minL, maxL] = levelRange;
+      candidates = candidates.filter((e) => e.level >= minL && e.level <= maxL);
+    } else if (rarityNorms?.length) {
+      candidates = candidates.filter((e) => rarityNorms.includes(e.rarity));
+    }
+
+    if (!candidates.length) return [];
+    const picks = candidates.sort(() => Math.random() - 0.5).slice(0, limit);
+    const docs  = await Promise.all(picks.map(({ packId, id }) => game.packs.get(packId).getDocument(id)));
+    return docs.filter(Boolean);
+  }
+
+  /** Clear the PF2e pool cache — called by CompendiumSettingsApp when packs change. */
+  static clearPool() {
+    _clearPf2eCache();
+  }
+
+  // ── Identification helpers (PF2e uses system.identification.status) ──────────
+
+  /**
+   * Apply mystification to a plain item data object.
+   * Sets system.identification.status = "unidentified" and fills in a generic
+   * unidentified name so PF2e hides the real item name from players.
+   *
+   * @param {object} data  Plain item data object (from toObject() or plain JS).
+   */
+  static applyMystification(data) {
+    if (!data.system?.identification) return;
+    data.system.identification.status = "unidentified";
+    data.system.identification.unidentified ??= {};
+    if (!data.system.identification.unidentified.name) {
+      data.system.identification.unidentified.name = _pf2eUnidentifiedLabel(data);
+    }
+  }
+
+  /**
+   * Remove mystification from a plain item data object.
+   */
+  static clearMystification(data) {
+    if (!data.system?.identification) return;
+    data.system.identification.status = "identified";
+  }
+
+  /**
+   * Return true if the item data is in an unidentified state.
+   * @param {object} data
+   */
+  static isMystified(data) {
+    return data.system?.identification?.status === "unidentified";
+  }
+
+  /**
+   * Read the display name for an item, respecting PF2e identification.
+   * @param {object} item
+   */
+  static getDisplayName(item) {
+    if (item.system?.identification?.status === "unidentified") {
+      return item.system.identification.unidentified?.name
+        || game.i18n.localize("LOOTROLLER.lottery.unidentifiedItem");
+    }
+    return item.name;
+  }
+
+  /**
+   * Read the display description for an item, respecting PF2e identification.
+   * @param {object} item
+   */
+  static getDisplayDescription(item) {
+    if (item.system?.identification?.status === "unidentified") {
+      return item.system.identification.unidentified?.description ?? "";
+    }
+    return item.system?.description?.value ?? "";
   }
 }
 

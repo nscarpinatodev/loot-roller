@@ -183,9 +183,16 @@
       }
     },
 
+    "levelRange": {
+      "low":        "Low",
+      "high":       "High",
+      "levelLabel": "Level"
+    },
+
     "quest": {
       "title": "Quest Reward Builder",
       "rarity": "Rarity",
+      "levelRange": "Item Level Range",
       "itemTypes": "Item Types",
       "itemTypesHint": "(none = any type)",
       "rollFirst": "Roll for Item",
@@ -202,11 +209,13 @@
       "addToQuest": "Add to Quest",
       "noItems": "No items in the reward list yet.",
       "dragDropHint": "Drag items from the Compendium here, or roll above",
-      "noSpells": "Spells cannot be added as quest rewards."
+      "noSpells": "Spells cannot be added as quest rewards.",
+      "viewCurrent": "View Details"
     },
 
     "shop": {
       "title": "Shop Inventory Generator",
+      "levelRange": "Item Level Range",
       "shopName": "Shop Name",
       "shopNamePlaceholder": "e.g. Bartholomew's Curios",
       "itemCount": "Number of Items",
@@ -253,7 +262,10 @@
       "loot":       "Loot / Gems",
       "tool":       "Tools",
       "treasure":   "Treasure",
-      "scroll":     "Spell Scrolls"
+      "scroll":     "Spell Scrolls",
+      "apparel":    "Apparel",
+      "ammo":       "Ammunition",
+      "junk":       "Junk / Components"
     },
 
     "rarity": {
@@ -263,6 +275,26 @@
       "veryRare":  "Very Rare",
       "legendary": "Legendary",
       "unique":    "Unique"
+    },
+
+    "fallout": {
+      "field": {
+        "location":    "Location Type",
+        "threatLevel": "Threat Level"
+      },
+      "location": {
+        "wastes":       "Open Wasteland",
+        "raiderCamp":   "Raider Camp",
+        "militaryBase": "Military Base",
+        "preWarVault":  "Pre-War Vault",
+        "settlement":   "Settlement",
+        "ghoulNest":    "Ghoul Nest"
+      },
+      "threat": {
+        "low":    "Low",
+        "medium": "Medium",
+        "high":   "High"
+      }
     }
   }
 }

@@ -92,23 +92,23 @@ export async function addCurrencyToActor(actor, coins) {
   }
 
   if (systemId === "pf2e") {
-    // PF2e stores coins as embedded items of type "treasure" with compendium IDs.
-    // The system exposes actor.inventory.coins for easy manipulation.
-    const coinMap = {
-      pp: "Platinum Pieces",
-      gp: "Gold Pieces",
-      sp: "Silver Pieces",
-      cp: "Copper Pieces",
-    };
+    // PF2e stores currency directly in system.currency (same key names as dnd5e).
+    const current = actor.system?.currency ?? {};
     const updates = {};
     for (const [denom, amount] of Object.entries(coins)) {
-      if (amount && coinMap[denom]) {
-        updates[denom] = (actor.system.currency?.[denom] ?? 0) + amount;
-      }
+      if (amount) updates[denom] = (current[denom] ?? 0) + amount;
     }
     if (Object.keys(updates).length) {
       await actor.update({ "system.currency": updates });
     }
+    return;
+  }
+
+  if (systemId === "fallout") {
+    // Fallout 2d20 uses caps stored in system.currency.caps.
+    const current = actor.system?.currency ?? {};
+    const caps    = (current.caps ?? 0) + (coins.caps ?? 0);
+    await actor.update({ "system.currency": { ...current, caps } });
     return;
   }
 
@@ -130,6 +130,11 @@ export async function addCurrencyToActor(actor, coins) {
  * @returns {string}  e.g. "12 gp, 4 sp"
  */
 export function formatCoins(coins) {
+  if (!coins) return "0";
+  // Fallout: caps only
+  if ("caps" in coins) {
+    return coins.caps > 0 ? `${coins.caps} caps` : "0 caps";
+  }
   const order = ["pp", "gp", "ep", "sp", "cp"];
   return order
     .filter((d) => coins[d] > 0)

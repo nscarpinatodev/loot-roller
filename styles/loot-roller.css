@@ -759,6 +759,53 @@
 .rarity-btn.legendary.selected { color: #e07820; border-color: #e07820; background: rgba(224,120,32,0.12); }
 .rarity-btn.unique.selected    { color: #6f42c1; border-color: #6f42c1; background: rgba(111,66,193,0.12); }
 
+/* Item type buttons when selected — match the "Common" rarity button scheme */
+.type-btn.selected { color: #e0e0e0; border-color: #e0e0e0; background: rgba(224,224,224,0.12); font-weight: bold; }
+
+/* Level range selector (PF2e, replaces rarity buttons) */
+.level-range-inputs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.level-range-label {
+  font-size: 11px;
+  color: var(--color-text-light-7);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.level-range-sep {
+  font-size: 12px;
+  color: var(--color-text-light-7);
+}
+
+.level-range-min,
+.level-range-max {
+  width: 52px;
+  text-align: center;
+  padding: 3px 6px;
+  font-size: 13px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--color-text-primary);
+}
+
+.level-range-min:focus,
+.level-range-max:focus {
+  outline: none;
+  border-color: var(--color-border-highlight);
+}
+
+/* Item level badge (PF2e: shown instead of rarity) */
+.item-level {
+  font-size: 11px;
+  color: #5b9bd5;
+  font-weight: bold;
+}
+
 /* ── Quest item card ─────────────────────────────────────── */
 
 .current-item-area {
@@ -839,6 +886,11 @@
   background: rgba(0, 0, 0, 0.03);
 }
 
+.quest-item-card .item-img-btn {
+  width: 52px;
+  height: 52px;
+}
+
 .quest-item-card .item-img {
   width: 52px;
   height: 52px;
@@ -890,8 +942,22 @@
   gap: 5px;
 }
 
-.btn-add-item:hover { filter: brightness(1.1); }
-.btn-reroll:hover   { border-color: var(--color-border-highlight); }
+.btn-view-current {
+  padding: 5px 10px;
+  background: transparent;
+  color: var(--color-text-light-7);
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.btn-add-item:hover    { filter: brightness(1.1); }
+.btn-view-current:hover { color: var(--color-text-primary); border-color: var(--color-border-highlight); }
+.btn-reroll:hover       { border-color: var(--color-border-highlight); }
 
 /* ── Shared item list (quest + shop) ─────────────────────── */
 

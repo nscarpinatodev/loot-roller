@@ -8,18 +8,35 @@
   {{!-- Filters --}}
   <div class="generator-filters">
 
-    {{!-- Rarity --}}
-    <div class="filter-group">
-      <label class="filter-label">{{localize "LOOTROLLER.quest.rarity"}}</label>
-      <div class="filter-buttons">
-        {{#each rarities}}
-          <button type="button" data-action="toggle-rarity" data-rarity="{{this.value}}"
-            class="filter-btn rarity-btn {{lootrollerRarityClass this.value}} {{#if (lootrollerIncludes ../selectedRarities this.value)}}selected{{/if}}">
-            {{localize this.label}}
-          </button>
-        {{/each}}
+    {{!-- Rarity OR Level Range (system-dependent) --}}
+    {{#if levelRangeDef}}
+      {{!-- PF2e: level range selector replaces rarity buttons --}}
+      <div class="filter-group">
+        <label class="filter-label">{{localize "LOOTROLLER.quest.levelRange"}}</label>
+        <div class="level-range-inputs">
+          <span class="level-range-label">{{localize "LOOTROLLER.levelRange.low"}}</span>
+          <input type="number" class="level-range-min" value="{{levelRange.[0]}}"
+            min="{{levelRangeDef.min}}" max="{{levelRangeDef.max}}" />
+          <span class="level-range-sep">—</span>
+          <span class="level-range-label">{{localize "LOOTROLLER.levelRange.high"}}</span>
+          <input type="number" class="level-range-max" value="{{levelRange.[1]}}"
+            min="{{levelRangeDef.min}}" max="{{levelRangeDef.max}}" />
+        </div>
       </div>
-    </div>
+    {{else}}
+      {{!-- dnd5e and others: rarity buttons --}}
+      <div class="filter-group">
+        <label class="filter-label">{{localize "LOOTROLLER.quest.rarity"}}</label>
+        <div class="filter-buttons">
+          {{#each rarities}}
+            <button type="button" data-action="toggle-rarity" data-rarity="{{this.value}}"
+              class="filter-btn rarity-btn {{lootrollerRarityClass this.value}} {{#if (lootrollerIncludes ../selectedRarities this.value)}}selected{{/if}}">
+              {{localize this.label}}
+            </button>
+          {{/each}}
+        </div>
+      </div>
+    {{/if}}
 
     {{!-- Item types --}}
     {{#if itemTypes.length}}
@@ -27,7 +44,6 @@
       <label class="filter-label">{{localize "LOOTROLLER.quest.itemTypes"}} <span class="hint-inline">{{localize "LOOTROLLER.quest.itemTypesHint"}}</span></label>
       <div class="filter-buttons">
         {{#each itemTypes}}
-          {{#with (lookup ../selectedTypes @index) as |sel|}}{{/with}}
           <button type="button" data-action="toggle-type" data-item-type="{{this.value}}"
             class="filter-btn type-btn {{#if (lootrollerIncludes ../selectedTypes this.value)}}selected{{/if}}">
             {{localize this.label}}
@@ -53,10 +69,17 @@
       </div>
     {{else if current}}
       <div class="item-card quest-item-card">
-        <img class="item-img" src="{{current.img}}" alt="{{current.name}}" />
+        <button type="button" class="item-img-btn" data-action="view-current"
+          title="{{localize 'LOOTROLLER.lottery.viewItem'}}">
+          <img class="item-img" src="{{current.img}}" alt="{{current.name}}" />
+        </button>
         <div class="item-details">
           <p class="item-name">{{current.name}}</p>
-          <p class="item-rarity {{lootrollerRarityClass current.rarity}}">{{current.rarity}}</p>
+          {{#if current.level}}
+            <p class="item-level">{{localize "LOOTROLLER.levelRange.levelLabel"}} {{current.level}}</p>
+          {{else if current.rarity}}
+            <p class="item-rarity {{lootrollerRarityClass current.rarity}}">{{current.rarity}}</p>
+          {{/if}}
           {{#if current.stub}}
             <p class="item-stub-note">{{localize "LOOTROLLER.lottery.itemNotInCompendium"}}</p>
           {{/if}}
@@ -65,6 +88,11 @@
           <button type="button" class="btn-add-item" data-action="add-item">
             <i class="fa-solid fa-plus"></i>
             {{localize "LOOTROLLER.quest.addItem"}}
+          </button>
+          <button type="button" class="btn-view-current" data-action="view-current"
+            title="{{localize 'LOOTROLLER.lottery.viewItem'}}">
+            <i class="fa-solid fa-eye"></i>
+            {{localize "LOOTROLLER.quest.viewCurrent"}}
           </button>
           <button type="button" class="btn-reroll" data-action="roll-item">
             <i class="fa-solid fa-rotate"></i>
@@ -112,7 +140,9 @@
             </button>
             <div class="item-info">
               <span class="item-name">{{this.name}}</span>
-              {{#if this.rarity}}
+              {{#if this.level}}
+                <span class="item-level">{{localize "LOOTROLLER.levelRange.levelLabel"}} {{this.level}}</span>
+              {{else if this.rarity}}
                 <span class="item-rarity {{lootrollerRarityClass this.rarity}}">{{this.rarity}}</span>
               {{/if}}
             </div>

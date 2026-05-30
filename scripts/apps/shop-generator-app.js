@@ -27,19 +27,28 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     this._shopName   = "";
     this._rarities   = ["common", "uncommon"];
     this._types      = [];
+    this._levelRange = null;   // [minLevel, maxLevel] for PF2e; null = use rarity
     this._itemCount  = 10;
     this._items      = [];
     this._generating = false;
   }
 
   async _prepareContext(options) {
-    const adapter   = LootRoller.getAdapter();
-    const rarities  = adapter?.getRarities?.()  ?? [];
-    const itemTypes = adapter?.getItemTypes?.() ?? [];
+    const adapter       = LootRoller.getAdapter();
+    const rarities      = adapter?.getRarities?.()       ?? [];
+    const itemTypes     = adapter?.getItemTypes?.()      ?? [];
+    const levelRangeDef = adapter?.getItemLevelRange?.() ?? null;
+
+    // Seed default level range from adapter on first load
+    if (levelRangeDef && !this._levelRange) {
+      this._levelRange = [levelRangeDef.defaultMin, levelRangeDef.defaultMax];
+    }
 
     return {
       rarities,
       itemTypes,
+      levelRangeDef,
+      levelRange:       this._levelRange,
       shopName:         this._shopName,
       selectedRarities: this._rarities,
       selectedTypes:    this._types,
@@ -48,7 +57,8 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         idx,
         name:   item.name,
         img:    item.img ?? "icons/svg/item-bag.svg",
-        rarity: item.system?.rarity ?? item.rarity ?? "common",
+        rarity: item.system?.traits?.rarity ?? item.system?.rarity ?? item.rarity ?? "common",
+        level:  item.system?.level?.value   ?? null,
         stub:   !!item.stub,
       })),
       generating: this._generating,
@@ -96,6 +106,18 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       });
     });
 
+    // Level range inputs (PF2e — shown instead of rarity buttons)
+    this.element.querySelector(".level-range-min")?.addEventListener("change", (e) => {
+      const lo = Math.max(1, parseInt(e.target.value) || 1);
+      const hi = Math.max(lo, this._levelRange?.[1] ?? lo);
+      this._levelRange = [lo, hi];
+    });
+    this.element.querySelector(".level-range-max")?.addEventListener("change", (e) => {
+      const hi = Math.max(1, parseInt(e.target.value) || 1);
+      const lo = Math.min(hi, this._levelRange?.[0] ?? hi);
+      this._levelRange = [lo, hi];
+    });
+
     this.element.querySelector("[data-action=generate]")
       ?.addEventListener("click", () => this._generate());
 
@@ -121,12 +143,14 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     this.render(false);
 
     try {
-      const types   = this._types.length ? this._types : null;
-      this._items   = await adapter.findItems({
-        rarities: this._rarities,
-        types,
-        limit: this._itemCount,
-      });
+      const types      = this._types.length ? this._types : null;
+      const findParams = { types, limit: this._itemCount };
+      if (this._levelRange) {
+        findParams.levelRange = this._levelRange;
+      } else {
+        findParams.rarities = this._rarities;
+      }
+      this._items   = await adapter.findItems(findParams);
     } catch (err) {
       console.error("LootRoller | Shop generation error:", err);
     } finally {

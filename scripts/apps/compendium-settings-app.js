@@ -61,6 +61,7 @@ export class CompendiumSettingsApp extends HandlebarsApplicationMixin(Applicatio
     });
     await game.settings.set("loot-roller", "compendiumPacks", setting);
     CompendiumHelper.clearPool();
+    LootRoller.getAdapter()?.clearPool?.();
     LootHubApp._poolWarmed = false;
     ui.notifications.info(game.i18n.localize("LOOTROLLER.settings.compendiumSources.saved"));
     this.close();
@@ -69,6 +70,7 @@ export class CompendiumSettingsApp extends HandlebarsApplicationMixin(Applicatio
   async _resetDefaults() {
     await game.settings.set("loot-roller", "compendiumPacks", {});
     CompendiumHelper.clearPool();
+    LootRoller.getAdapter()?.clearPool?.();
     LootHubApp._poolWarmed = false;
     this.render(false);
   }

@@ -26,6 +26,7 @@ import { CompendiumSettingsApp }  from "./apps/compendium-settings-app.js";
 // System adapters — only one will self-register based on game.system.id
 import "./systems/dnd5e-adapter.js";
 import "./systems/pf2e-adapter.js";
+import "./systems/fallout-adapter.js";
 
 const MODULE_ID = "loot-roller";
 
@@ -136,10 +137,14 @@ Hooks.once("ready", () => {
     }
   }
 
-  // ── Pre-warm compendium indexes ──────────────────────────────────────────
-  if (adapter?.getCompendiumPacks) {
+  // ── Pre-warm compendium indexes / pool ───────────────────────────────────
+  // Prefer adapter.warmPool() (each adapter knows which cache to build).
+  // Fall back to plain CompendiumHelper.getIndex for adapters that lack warmPool.
+  if (adapter?.warmPool) {
+    adapter.warmPool().catch(() => {});
+  } else if (adapter?.getCompendiumPacks) {
     for (const packId of adapter.getCompendiumPacks()) {
-      CompendiumHelper.getIndex(packId).catch(() => {}); // fire-and-forget
+      CompendiumHelper.getIndex(packId).catch(() => {});
     }
   }
 

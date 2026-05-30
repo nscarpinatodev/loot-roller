@@ -47,7 +47,9 @@
             </button>
             <div class="item-info">
               <span class="item-name">{{this.name}}</span>
-              {{#if this.rarity}}
+              {{#if this.level}}
+                <span class="item-level">{{localize "LOOTROLLER.levelRange.levelLabel"}} {{this.level}}</span>
+              {{else if this.rarity}}
                 <span class="item-rarity {{lootrollerRarityClass this.rarity}}">{{this.rarity}}</span>
               {{/if}}
               {{#if this.stub}}

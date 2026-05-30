@@ -15,6 +15,7 @@ import { LotteryManager } from "../lottery-manager.js";
 import { LotteryGMApp }   from "./lottery-gm-app.js";
 import { LootListManager } from "../loot-list-manager.js";
 import { formatCoins }    from "../currency-helper.js";
+import { LootRoller }     from "../api.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -67,9 +68,14 @@ export class LotterySetupApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /** @type {"equal"|"stash"} */
     this._currencyMode = game.settings.get("loot-roller", "currencyDistribution") ?? "equal";
 
-    // Seed mystified state from item data (rare+ items auto-mystified by resolveItems)
+    // Seed mystified state from item data (rare+ items auto-mystified by resolveItems).
+    // dnd5e: system.identified === false
+    // PF2e:  system.identification.status === "unidentified"
     lootResult.items.forEach((item, idx) => {
-      if (item.system?.identified === false) this._mystified[idx] = true;
+      if (item.system?.identified === false ||
+          item.system?.identification?.status === "unidentified") {
+        this._mystified[idx] = true;
+      }
     });
   }
 
@@ -85,13 +91,14 @@ export class LotterySetupApp extends HandlebarsApplicationMixin(ApplicationV2) {
       currencyMode:   this._currencyMode,
       items: items.map((item, idx) => ({
         idx,
-        name:        item.name ?? "Unknown Item",
-        img:         item.img  ?? "icons/svg/item-bag.svg",
-        rarity:      item.system?.rarity ?? item.rarity ?? "",
-        stub:        !!item.stub,
-        dest:        this._destinations[idx] ?? "lottery",
-        mystified:   this._mystified[idx] ?? false,
-        sourceUuid:  item._sourceUuid ?? item.uuid ?? null,
+        name:       item.name ?? "Unknown Item",
+        img:        item.img  ?? "icons/svg/item-bag.svg",
+        rarity:     item.system?.traits?.rarity ?? item.system?.rarity ?? item.rarity ?? "",
+        level:      item.system?.level?.value   ?? null,
+        stub:       !!item.stub,
+        dest:       this._destinations[idx] ?? "lottery",
+        mystified:  this._mystified[idx] ?? false,
+        sourceUuid: item._sourceUuid ?? item.uuid ?? null,
       })),
       stashActorName: stashActor?.name ?? null,
       hasStash:       !!stashActor,
@@ -192,14 +199,21 @@ export class LotterySetupApp extends HandlebarsApplicationMixin(ApplicationV2) {
       delete data._id;
 
       if (data.system) {
-        data.system.identified = !isMystified;
-
-        if (isMystified && data.system.unidentified !== undefined) {
-          // dnd5e hides the real name only when unidentified.name is non-empty.
-          // Preserve any name already set (e.g. from a well-authored compendium item);
-          // otherwise derive a generic label from the item type so the real name is hidden.
-          if (!data.system.unidentified.name) {
-            data.system.unidentified.name = _unidentifiedLabel(data);
+        const adapter = LootRoller.getAdapter?.();
+        if (adapter?.applyMystification) {
+          // Adapter handles system-specific identification fields.
+          if (isMystified) {
+            adapter.applyMystification(data);
+          } else if (adapter.clearMystification) {
+            adapter.clearMystification(data);
+          }
+        } else {
+          // Fallback: dnd5e-style identification.
+          data.system.identified = !isMystified;
+          if (isMystified && data.system.unidentified !== undefined) {
+            if (!data.system.unidentified.name) {
+              data.system.unidentified.name = _unidentifiedLabel(data);
+            }
           }
         }
       }

@@ -30,6 +30,7 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
     this._onConfirm  = onConfirm ?? null;  // optional callback from Quest Tracker integration
     this._rarities   = ["uncommon"];
     this._types      = [];            // empty = all types
+    this._levelRange = null;          // [minLevel, maxLevel] for PF2e; null = use rarity
     this._current    = null;          // current Item document or stub
     this._items      = [];            // accumulated reward list
     this._searching  = false;
@@ -38,20 +39,29 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
   }
 
   async _prepareContext(options) {
-    const adapter   = LootRoller.getAdapter();
-    const rarities  = adapter?.getRarities?.()  ?? [];
-    const itemTypes = adapter?.getItemTypes?.() ?? [];
+    const adapter       = LootRoller.getAdapter();
+    const rarities      = adapter?.getRarities?.()       ?? [];
+    const itemTypes     = adapter?.getItemTypes?.()      ?? [];
+    const levelRangeDef = adapter?.getItemLevelRange?.() ?? null;
+
+    // Seed default level range from adapter on first load
+    if (levelRangeDef && !this._levelRange) {
+      this._levelRange = [levelRangeDef.defaultMin, levelRangeDef.defaultMax];
+    }
 
     return {
       rarities,
       itemTypes,
+      levelRangeDef,
+      levelRange:       this._levelRange,
       selectedRarities: this._rarities,
       selectedTypes:    this._types,
       current: this._current
         ? {
             name:   this._current.name,
             img:    this._current.img ?? "icons/svg/item-bag.svg",
-            rarity: this._current.system?.rarity ?? this._current.rarity ?? "common",
+            rarity: this._current.system?.traits?.rarity ?? this._current.system?.rarity ?? this._current.rarity ?? "common",
+            level:  this._current.system?.level?.value   ?? null,
             type:   this._current.type,
             stub:   !!this._current.stub,
           }
@@ -60,7 +70,8 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
         idx,
         name:     item.name,
         img:      item.img ?? "icons/svg/item-bag.svg",
-        rarity:   item.system?.rarity ?? item.rarity ?? "common",
+        rarity:   item.system?.traits?.rarity ?? item.system?.rarity ?? item.rarity ?? "common",
+        level:    item.system?.level?.value   ?? null,
         stub:     !!item.stub,
         quantity: item.system?.quantity ?? 1,
         uuid:     item._sourceUuid ?? item.uuid ?? null,
@@ -102,8 +113,39 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
       });
     });
 
+    // Level range inputs (PF2e — shown instead of rarity buttons)
+    this.element.querySelector(".level-range-min")?.addEventListener("change", (e) => {
+      const lo = Math.max(1, parseInt(e.target.value) || 1);
+      const hi = Math.max(lo, this._levelRange?.[1] ?? lo);
+      this._levelRange = [lo, hi];
+    });
+    this.element.querySelector(".level-range-max")?.addEventListener("change", (e) => {
+      const hi = Math.max(1, parseInt(e.target.value) || 1);
+      const lo = Math.min(hi, this._levelRange?.[0] ?? hi);
+      this._levelRange = [lo, hi];
+    });
+
     this.element.querySelector("[data-action=roll-item]")
       ?.addEventListener("click", () => this._rollItem());
+
+    this.element.querySelectorAll("[data-action=view-current]").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        if (!this._current) return;
+        // Live document — open its sheet directly
+        if (this._current.sheet) { this._current.sheet.render(true); return; }
+        // UUID-backed plain object
+        const uuid = this._current._sourceUuid ?? this._current.uuid;
+        if (uuid) {
+          const doc = await fromUuid(uuid).catch(() => null);
+          if (doc) { doc.sheet.render(true); return; }
+        }
+        // Fallback: temporary in-memory item
+        const data = this._current.toObject?.() ?? { ...this._current };
+        delete data._id;
+        new CONFIG.Item.documentClass(data).sheet.render(true);
+      });
+    });
 
     this.element.querySelector("[data-action=add-item]")
       ?.addEventListener("click", () => this._addItem());
@@ -206,12 +248,13 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
     try {
       const types        = this._types.length ? this._types : null;
       const excludeNames = new Set(this._items.map((i) => i.name).filter(Boolean));
-      const results      = await adapter.findItems({
-        rarities: this._rarities,
-        types,
-        limit: 1,
-        excludeNames,
-      });
+      const findParams   = { types, limit: 1, excludeNames };
+      if (this._levelRange) {
+        findParams.levelRange = this._levelRange;
+      } else {
+        findParams.rarities = this._rarities;
+      }
+      const results      = await adapter.findItems(findParams);
 
       if (results.length) {
         this._current   = results[0];

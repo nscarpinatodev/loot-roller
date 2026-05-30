@@ -438,6 +438,29 @@ async function _findScrollItems(rarities, limit, excludeNames) {
   return results;
 }
 
+/**
+ * Return a generic display label for a mystified dnd5e item based on its type.
+ * Used as system.unidentified.name so dnd5e hides the real item name.
+ */
+function _dnd5eUnidentifiedLabel(data) {
+  const sub = data.system?.type?.value ?? "";
+  switch (data.type) {
+    case "weapon":     return "Unidentified Weapon";
+    case "consumable":
+      if (sub === "scroll") return "Unidentified Scroll";
+      if (sub === "potion") return "Unidentified Potion";
+      if (sub === "wand")   return "Unidentified Wand";
+      if (sub === "rod")    return "Unidentified Rod";
+      return "Unidentified Item";
+    case "equipment":
+      if (sub === "armor")  return "Unidentified Armor";
+      if (sub === "shield") return "Unidentified Shield";
+      return "Unidentified Item";
+    default:
+      return "Unidentified Item";
+  }
+}
+
 // ── Compendium packs to search ──────────────────────────────────────────────
 
 const PACK_IDS = [
@@ -797,6 +820,50 @@ export class DnD5eAdapter {
       console.error("LootRoller | createScrollFromSpell failed:", err);
       return null;
     }
+  }
+
+  // ── Identification helpers ──────────────────────────────────────────────────
+
+  /**
+   * Apply mystification to a plain dnd5e item data object.
+   * Sets system.identified = false and fills in a generic unidentified name.
+   *
+   * @param {object} data  Plain item data object (from toObject() or plain JS).
+   */
+  static applyMystification(data) {
+    if (!data.system) return;
+    data.system.identified = false;
+    if (data.system.unidentified !== undefined && !data.system.unidentified.name) {
+      data.system.unidentified.name = _dnd5eUnidentifiedLabel(data);
+    }
+  }
+
+  /** Remove mystification from a plain dnd5e item data object. */
+  static clearMystification(data) {
+    if (!data.system) return;
+    data.system.identified = true;
+  }
+
+  /** Return true if the item data is in an unidentified state. */
+  static isMystified(data) {
+    return data.system?.identified === false;
+  }
+
+  /** Read the display name for an item, respecting dnd5e identification. */
+  static getDisplayName(item) {
+    if (item.system?.identified === false) {
+      return item.system?.unidentified?.name
+        || game.i18n.localize("LOOTROLLER.lottery.unidentifiedItem");
+    }
+    return item.name;
+  }
+
+  /** Read the display description for an item, respecting dnd5e identification. */
+  static getDisplayDescription(item) {
+    if (item.system?.identified === false) {
+      return item.system?.unidentified?.description ?? "";
+    }
+    return item.system?.description?.value ?? "";
   }
 }
 

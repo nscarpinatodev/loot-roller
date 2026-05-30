@@ -21,7 +21,9 @@
       "WebFetch(domain:pf2calc.com)",
       "WebFetch(domain:pf2easy.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "WebFetch(domain:api.github.com)"
+      "WebFetch(domain:api.github.com)",
+      "Bash(ls \"c:\\\\Users\\\\djsco\\\\.claude\\\\projects\\\\c--Users-djsco-OneDrive-Documents-GitHub-loot-roller\\\\memory\\\\\")",
+      "Read(//c/Users/djsco/.claude/projects/c--Users-djsco-OneDrive-Documents-GitHub-loot-roller/**)"
     ]
   }
 }

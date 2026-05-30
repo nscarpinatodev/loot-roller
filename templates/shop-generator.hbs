@@ -19,18 +19,35 @@
       <input type="number" name="itemCount" value="{{itemCount}}" min="1" max="50" />
     </div>
 
-    {{!-- Rarity filters --}}
-    <div class="filter-group">
-      <label class="filter-label">{{localize "LOOTROLLER.shop.rarities"}}</label>
-      <div class="filter-buttons">
-        {{#each rarities}}
-          <button type="button" data-action="toggle-rarity" data-rarity="{{this.value}}"
-            class="filter-btn rarity-btn {{lootrollerRarityClass this.value}} {{#if (lootrollerIncludes ../selectedRarities this.value)}}selected{{/if}}">
-            {{localize this.label}}
-          </button>
-        {{/each}}
+    {{!-- Rarity OR Level Range (system-dependent) --}}
+    {{#if levelRangeDef}}
+      {{!-- PF2e: level range selector replaces rarity buttons --}}
+      <div class="filter-group">
+        <label class="filter-label">{{localize "LOOTROLLER.shop.levelRange"}}</label>
+        <div class="level-range-inputs">
+          <span class="level-range-label">{{localize "LOOTROLLER.levelRange.low"}}</span>
+          <input type="number" class="level-range-min" value="{{levelRange.[0]}}"
+            min="{{levelRangeDef.min}}" max="{{levelRangeDef.max}}" />
+          <span class="level-range-sep">—</span>
+          <span class="level-range-label">{{localize "LOOTROLLER.levelRange.high"}}</span>
+          <input type="number" class="level-range-max" value="{{levelRange.[1]}}"
+            min="{{levelRangeDef.min}}" max="{{levelRangeDef.max}}" />
+        </div>
       </div>
-    </div>
+    {{else}}
+      {{!-- dnd5e and others: rarity buttons --}}
+      <div class="filter-group">
+        <label class="filter-label">{{localize "LOOTROLLER.shop.rarities"}}</label>
+        <div class="filter-buttons">
+          {{#each rarities}}
+            <button type="button" data-action="toggle-rarity" data-rarity="{{this.value}}"
+              class="filter-btn rarity-btn {{lootrollerRarityClass this.value}} {{#if (lootrollerIncludes ../selectedRarities this.value)}}selected{{/if}}">
+              {{localize this.label}}
+            </button>
+          {{/each}}
+        </div>
+      </div>
+    {{/if}}
 
     {{!-- Item type filters --}}
     {{#if itemTypes.length}}
@@ -73,7 +90,9 @@
             <img class="item-img" src="{{this.img}}" alt="{{this.name}}" />
             <div class="item-info">
               <span class="item-name">{{this.name}}</span>
-              {{#if this.rarity}}
+              {{#if this.level}}
+                <span class="item-level">{{localize "LOOTROLLER.levelRange.levelLabel"}} {{this.level}}</span>
+              {{else if this.rarity}}
                 <span class="item-rarity {{lootrollerRarityClass this.rarity}}">{{this.rarity}}</span>
               {{/if}}
             </div>

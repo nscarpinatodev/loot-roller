@@ -100,7 +100,7 @@ export class LotteryManager {
     const currentItem = currentDoc ? {
       name: currentDoc.name,
       img: currentDoc.img ?? "icons/svg/item-bag.svg",
-      rarity: currentDoc.system?.rarity ?? currentDoc.rarity ?? "",
+      rarity: currentDoc.system?.rarity ?? currentDoc.system?.traits?.rarity ?? currentDoc.rarity ?? "",
     } : null;
 
     const upcoming = this._queue.slice(this._currentIndex + 1).map((item) => ({
@@ -161,12 +161,18 @@ export class LotteryManager {
     this._responses.clear();
     const item = this._queue[this._currentIndex];
 
-    const isUnidentified   = item.system?.identified === false;
-    const displayName      = isUnidentified
-      ? (item.system?.unidentified?.name || game.i18n.localize("LOOTROLLER.lottery.unidentifiedItem"))
+    // Support both dnd5e (system.identified === false) and PF2e (system.identification.status)
+    const isUnidentified = item.system?.identified === false
+      || item.system?.identification?.status === "unidentified";
+    const displayName    = isUnidentified
+      ? (item.system?.unidentified?.name
+          || item.system?.identification?.unidentified?.name
+          || game.i18n.localize("LOOTROLLER.lottery.unidentifiedItem"))
       : item.name;
-    const displayDesc      = isUnidentified
-      ? (item.system?.unidentified?.description || "")
+    const displayDesc    = isUnidentified
+      ? (item.system?.unidentified?.description
+          || item.system?.identification?.unidentified?.description
+          || "")
       : (item.system?.description?.value || "");
 
     emit(MSG.ITEM_UP_FOR_ROLL, {
