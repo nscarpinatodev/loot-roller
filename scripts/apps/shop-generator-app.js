@@ -34,22 +34,29 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   }
 
   async _prepareContext(options) {
-    const adapter       = LootRoller.getAdapter();
-    const rarities      = adapter?.getRarities?.()       ?? [];
-    const itemTypes     = adapter?.getItemTypes?.()      ?? [];
-    const levelRangeDef = adapter?.getItemLevelRange?.() ?? null;
+    const adapter   = LootRoller.getAdapter();
+    const itemTypes = adapter?.getItemTypes?.() ?? [];
 
-    // Seed default party level from adapter on first load
-    if (levelRangeDef && this._partyLevel === null) {
-      this._partyLevel = levelRangeDef.default;
+    // Seed party level from adapter default on first open
+    if (this._partyLevel === null && adapter?.getItemLevelRange) {
+      this._partyLevel = adapter.getItemLevelRange().default ?? 5;
     }
 
+    const filterState  = { selectedRarities: this._rarities, partyLevel: this._partyLevel ?? 5 };
+    const filterFields = adapter?.getFilterFields?.(filterState) ?? [{
+      type:    "rarity-buttons",
+      key:     "rarities",
+      label:   "LOOTROLLER.shop.rarities",
+      options: (adapter?.getRarities?.() ?? []).map((r) => ({
+        value:    r.value,
+        label:    r.label,
+        selected: this._rarities.includes(r.value),
+      })),
+    }];
+
     return {
-      rarities,
       itemTypes,
-      usesPartyLevel:   !!levelRangeDef,
-      levelRangeDef,
-      partyLevel:       this._partyLevel,
+      filterFields,
       shopName:         this._shopName,
       selectedRarities: this._rarities,
       selectedTypes:    this._types,
@@ -95,6 +102,15 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       });
     });
 
+    this.element.querySelectorAll(".filter-number-field").forEach((input) => {
+      input.addEventListener("change", () => {
+        const key = input.dataset.filterKey;
+        const val = Math.max(parseInt(input.min) || 1, Math.min(parseInt(input.max) || 20, parseInt(input.value) || 1));
+        input.value = val;
+        if (key === "partyLevel") this._partyLevel = val;
+      });
+    });
+
     this.element.querySelectorAll("[data-action=toggle-type]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const type = btn.dataset.itemType;
@@ -107,10 +123,6 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       });
     });
 
-    // Party level input (PF2e — shown instead of rarity buttons)
-    this.element.querySelector(".quest-party-level")?.addEventListener("change", (e) => {
-      this._partyLevel = Math.min(20, Math.max(1, parseInt(e.target.value) || 1));
-    });
 
     this.element.querySelector("[data-action=generate]")
       ?.addEventListener("click", () => this._generate());

@@ -350,6 +350,24 @@ export class PF2eAdapter {
     ];
   }
 
+  /**
+   * Return filter field descriptors for the Quest and Shop generators.
+   * PF2e uses party level (converted to an item-level window) instead of rarity.
+   *
+   * @param {{ partyLevel?: number }} state  Current filter state from the app.
+   * @returns {Array<FilterFieldDescriptor>}
+   */
+  static getFilterFields({ partyLevel = 5 } = {}) {
+    return [{
+      type:    "number",
+      key:     "partyLevel",
+      label:   "LOOTROLLER.pf2e.field.partyLevel",
+      min:     1,
+      max:     20,
+      current: partyLevel,
+    }];
+  }
+
   static getItemTypes() {
     return [
       { value: "weapon",     label: "LOOTROLLER.itemType.weapon" },

@@ -23,7 +23,8 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "WebFetch(domain:api.github.com)",
       "Bash(ls \"c:\\\\Users\\\\djsco\\\\.claude\\\\projects\\\\c--Users-djsco-OneDrive-Documents-GitHub-loot-roller\\\\memory\\\\\")",
-      "Read(//c/Users/djsco/.claude/projects/c--Users-djsco-OneDrive-Documents-GitHub-loot-roller/**)"
+      "Read(//c/Users/djsco/.claude/projects/c--Users-djsco-OneDrive-Documents-GitHub-loot-roller/**)",
+      "Bash(node --input-type=module)"
     ]
   }
 }

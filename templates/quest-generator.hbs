@@ -8,32 +8,30 @@
   {{!-- Filters --}}
   <div class="generator-filters">
 
-    {{!-- Rarity OR Level Range (system-dependent) --}}
-    {{#if (lootrollerUsesPartyLevel)}}
-      {{!-- PF2e: party level input replaces rarity buttons --}}
+    {{!-- Adapter-provided filter fields (rarity buttons, party level, etc.) --}}
+    {{#each filterFields}}
       <div class="filter-group">
-        <label class="filter-label">{{localize "LOOTROLLER.pf2e.field.partyLevel"}}</label>
-        <div class="party-level-input">
-          <input type="number" class="quest-party-level" value="{{partyLevel}}"
-            min="{{levelRangeDef.min}}" max="{{levelRangeDef.max}}" />
-        </div>
+        <label class="filter-label">{{localize this.label}}</label>
+        {{#if (lootrollerEq this.type "rarity-buttons")}}
+          <div class="filter-buttons">
+            {{#each this.options}}
+              <button type="button" data-action="toggle-rarity" data-rarity="{{this.value}}"
+                class="filter-btn rarity-btn {{lootrollerRarityClass this.value}}{{#if this.selected}} selected{{/if}}">
+                {{localize this.label}}
+              </button>
+            {{/each}}
+          </div>
+        {{/if}}
+        {{#if (lootrollerEq this.type "number")}}
+          <div class="party-level-input">
+            <input type="number" class="filter-number-field" data-filter-key="{{this.key}}"
+              value="{{this.current}}" min="{{this.min}}" max="{{this.max}}" />
+          </div>
+        {{/if}}
       </div>
-    {{else}}
-      {{!-- dnd5e and others: rarity buttons --}}
-      <div class="filter-group">
-        <label class="filter-label">{{localize "LOOTROLLER.quest.rarity"}}</label>
-        <div class="filter-buttons">
-          {{#each rarities}}
-            <button type="button" data-action="toggle-rarity" data-rarity="{{this.value}}"
-              class="filter-btn rarity-btn {{lootrollerRarityClass this.value}} {{#if (lootrollerIncludes ../selectedRarities this.value)}}selected{{/if}}">
-              {{localize this.label}}
-            </button>
-          {{/each}}
-        </div>
-      </div>
-    {{/if}}
+    {{/each}}
 
-    {{!-- Item types --}}
+    {{!-- Item types (adapter-provided, always shown) --}}
     {{#if itemTypes.length}}
     <div class="filter-group">
       <label class="filter-label">{{localize "LOOTROLLER.quest.itemTypes"}} <span class="hint-inline">{{localize "LOOTROLLER.quest.itemTypesHint"}}</span></label>
@@ -95,8 +93,6 @@
           </button>
         </div>
       </div>
-    {{else if rolled}}
-      {{!-- After a roll resolved with no current item but noResults is false: shouldn't happen, but safe fallback --}}
     {{else}}
       <div class="item-roll-prompt">
         <p>{{localize "LOOTROLLER.quest.rollPrompt"}}</p>
@@ -104,7 +100,7 @@
     {{/if}}
   </div>
 
-  {{!-- Roll button (shown when no current item and not searching) --}}
+  {{!-- Roll button --}}
   {{#unless current}}
     {{#unless searching}}
       <button type="button" class="btn-generate" data-action="roll-item">
@@ -118,7 +114,7 @@
     {{/unless}}
   {{/unless}}
 
-  {{!-- Accumulated reward list (also serves as a drop target for Compendium items) --}}
+  {{!-- Reward list --}}
   <div class="reward-list-section reward-list-drop-zone">
     <h3 class="section-label">
       <i class="fa-solid fa-gift"></i>
@@ -155,7 +151,6 @@
           </div>
         {{/each}}
       </div>
-
       <div class="reward-actions">
         {{#if questTrackerMode}}
           <button type="button" class="btn-add-to-quest" data-action="add-to-quest">

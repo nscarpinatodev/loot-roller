@@ -159,7 +159,100 @@ Hooks.once("ready", () => {
   }
 
   console.log(`Loot Roller | Ready. Adapter: ${adapter?.systemName ?? "none"}`);
+
+  // ── PF2e filter injection (cache-bypass) ────────────────────────────────
+  // Runs from main.js (always reloaded when module version changes) so the
+  // correct filter UI and roll behaviour work even if app JS is still cached.
+  _registerPf2eFilterHooks();
 });
+
+/**
+ * Register render hooks for Quest and Shop generators.
+ * When the adapter provides `getFilterFields()`, the hook:
+ *   1. Injects the correct filter UI if the old template rendered rarity buttons
+ *   2. Patches _rollItem / _generate to pass the right params to findItems
+ */
+function _registerPf2eFilterHooks() {
+  const _inject = (app) => {
+    const el = app.element;
+    if (!el) return;
+
+    const adapter = LootRoller.getAdapter?.();
+    if (!adapter?.getFilterFields) return;
+
+    // Ensure party level is initialised on the app instance
+    if (app._partyLevel === undefined || app._partyLevel === null) {
+      app._partyLevel = adapter.getItemLevelRange?.()?.default ?? 5;
+    }
+
+    // Only inject UI if the template didn't already render a number field
+    // (i.e. the template is a cached old version with rarity buttons only)
+    if (!el.querySelector(".filter-number-field")) {
+      const state  = { selectedRarities: app._rarities, partyLevel: app._partyLevel };
+      const fields = adapter.getFilterFields(state);
+      const numField = fields?.find((f) => f.type === "number");
+      if (numField) {
+        // Replace the first rarity filter group with the number input
+        const rarityGroup = el.querySelector(".filter-group:has(.rarity-btn)")
+          ?? el.querySelectorAll(".filter-group")[0];
+        if (rarityGroup) {
+          rarityGroup.innerHTML = `
+            <label class="filter-label">${game.i18n.localize(numField.label)}</label>
+            <div class="party-level-input">
+              <input type="number" class="filter-number-field"
+                data-filter-key="${numField.key}"
+                value="${app._partyLevel}" min="${numField.min}" max="${numField.max}" />
+            </div>`;
+          rarityGroup.querySelector(".filter-number-field")?.addEventListener("change", (e) => {
+            app._partyLevel = Math.max(numField.min, Math.min(numField.max, parseInt(e.target.value) || numField.current));
+          });
+        }
+      }
+    } else {
+      // Fresh template — sync stored value back into the input on every render
+      const input = el.querySelector(".filter-number-field[data-filter-key='partyLevel']");
+      if (input && app._partyLevel != null) input.value = app._partyLevel;
+    }
+
+    // Patch roll/generate once per instance to use partyLevel
+    if (app._pf2ePatched) return;
+    app._pf2ePatched = true;
+
+    if (typeof app._rollItem === "function") {
+      const _orig = app._rollItem.bind(app);
+      app._rollItem = async function () {
+        if (app._partyLevel == null) return _orig();
+        app._searching = true; app._noResults = false; app._current = null; app._rolled = true;
+        app.render(false);
+        try {
+          const types        = app._types?.length ? app._types : null;
+          const excludeNames = new Set((app._items ?? []).map((i) => i.name).filter(Boolean));
+          const results      = await adapter.findItems({ partyLevel: app._partyLevel, types, limit: 1, excludeNames });
+          app._current  = results[0] ?? null;
+          app._noResults = !results.length;
+        } catch (err) { console.error("LootRoller |", err); app._noResults = true; }
+        finally { app._searching = false; app.render(false); }
+      };
+    }
+
+    if (typeof app._generate === "function") {
+      const _orig = app._generate.bind(app);
+      app._generate = async function () {
+        if (app._partyLevel == null) return _orig();
+        app._generating = true; app._items = [];
+        app.render(false);
+        try {
+          const types = app._types?.length ? app._types : null;
+          app._items  = await adapter.findItems({ partyLevel: app._partyLevel, types, limit: app._itemCount ?? 10 });
+        } catch (err) { console.error("LootRoller |", err); }
+        finally { app._generating = false; app.render(false); }
+      };
+    }
+  };
+
+  Hooks.on("renderQuestGeneratorApp", _inject);
+  Hooks.on("renderShopGeneratorApp",  _inject);
+}
 
 // ── GM Toolbar button ─────────────────────────────────────────────────────────
 //

@@ -725,6 +725,26 @@ export class DnD5eAdapter {
     ];
   }
 
+  /**
+   * Return filter field descriptors for the Quest and Shop generators.
+   * The template renders these generically so no system-specific template logic is needed.
+   *
+   * @param {{ selectedRarities?: string[] }} state  Current filter state from the app.
+   * @returns {Array<FilterFieldDescriptor>}
+   */
+  static getFilterFields({ selectedRarities = ["uncommon"] } = {}) {
+    return [{
+      type:    "rarity-buttons",
+      key:     "rarities",
+      label:   "LOOTROLLER.quest.rarity",
+      options: DnD5eAdapter.getRarities().map((r) => ({
+        value:    r.value,
+        label:    r.label,
+        selected: selectedRarities.includes(r.value),
+      })),
+    }];
+  }
+
   static getItemTypes() {
     return [
       { value: "weapon",     label: "LOOTROLLER.itemType.weapon" },

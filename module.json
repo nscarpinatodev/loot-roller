@@ -2,7 +2,7 @@
   "id": "loot-roller",
   "title": "Loot Roller",
   "description": "A system-agnostic loot generator with a real-time player lottery/roll-off system. Supports D&D 5e, Pathfinder 2e, and Fallout 2d20 out of the box. Items are pulled from system compendiums. Additional systems can register via the plugin API.",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "compatibility": {
     "minimum": "12",
     "verified": "14"

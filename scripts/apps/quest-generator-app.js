@@ -39,22 +39,30 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
   }
 
   async _prepareContext(options) {
-    const adapter       = LootRoller.getAdapter();
-    const rarities      = adapter?.getRarities?.()       ?? [];
-    const itemTypes     = adapter?.getItemTypes?.()      ?? [];
-    const levelRangeDef = adapter?.getItemLevelRange?.() ?? null;
+    const adapter   = LootRoller.getAdapter();
+    const itemTypes = adapter?.getItemTypes?.() ?? [];
 
-    // Seed default party level from adapter on first load
-    if (levelRangeDef && this._partyLevel === null) {
-      this._partyLevel = levelRangeDef.default;
+    // Seed party level from adapter default on first open
+    if (this._partyLevel === null && adapter?.getItemLevelRange) {
+      this._partyLevel = adapter.getItemLevelRange().default ?? 5;
     }
 
+    // Adapter provides the filter field descriptors; fall back to rarity buttons
+    const filterState = { selectedRarities: this._rarities, partyLevel: this._partyLevel ?? 5 };
+    const filterFields = adapter?.getFilterFields?.(filterState) ?? [{
+      type:    "rarity-buttons",
+      key:     "rarities",
+      label:   "LOOTROLLER.quest.rarity",
+      options: (adapter?.getRarities?.() ?? []).map((r) => ({
+        value:    r.value,
+        label:    r.label,
+        selected: this._rarities.includes(r.value),
+      })),
+    }];
+
     return {
-      rarities,
       itemTypes,
-      usesPartyLevel:   !!levelRangeDef,
-      levelRangeDef,
-      partyLevel:       this._partyLevel,
+      filterFields,
       selectedRarities: this._rarities,
       selectedTypes:    this._types,
       current: this._current
@@ -88,7 +96,7 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
   _onRender(context, options) {
     super._onRender?.(context, options);
 
-    // Rarity toggles (multi-select; at least one must remain selected)
+    // Filter field inputs — handles both rarity-button and number types
     this.element.querySelectorAll("[data-action=toggle-rarity]").forEach((btn) => {
       btn.addEventListener("click", () => {
         const rarity = btn.dataset.rarity;
@@ -98,6 +106,15 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
           this._rarities.push(rarity);
         }
         this.render(false);
+      });
+    });
+
+    this.element.querySelectorAll(".filter-number-field").forEach((input) => {
+      input.addEventListener("change", () => {
+        const key = input.dataset.filterKey;
+        const val = Math.max(parseInt(input.min) || 1, Math.min(parseInt(input.max) || 20, parseInt(input.value) || 1));
+        input.value = val;
+        if (key === "partyLevel") this._partyLevel = val;
       });
     });
 
@@ -114,10 +131,6 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
       });
     });
 
-    // Party level input (PF2e — shown instead of rarity buttons)
-    this.element.querySelector(".quest-party-level")?.addEventListener("change", (e) => {
-      this._partyLevel = Math.min(20, Math.max(1, parseInt(e.target.value) || 1));
-    });
 
     this.element.querySelector("[data-action=roll-item]")
       ?.addEventListener("click", () => this._rollItem());
