@@ -35,7 +35,16 @@
       "Bash(node -e \"const j=require\\('./lang/en.json'\\);const L=j.LOOTROLLER;console.log\\('pf2e:',JSON.stringify\\(L.pf2e,null,1\\)\\);console.log\\('settings.pf2e:',JSON.stringify\\(L.settings&&L.settings.pf2e,null,1\\)\\);\")",
       "Bash(node --check scripts/systems/starfinder2e-adapter.js)",
       "Bash(node -e \"const j=require\\('./module.json'\\);console.log\\('valid JSON; version',j.version,'; relationships:',JSON.stringify\\(j.relationships\\)\\)\")",
-      "Bash(node --check scripts/currency-helper.js)"
+      "Bash(node --check scripts/currency-helper.js)",
+      "Bash(gh --version)",
+      "Bash(git checkout *)",
+      "Bash(git archive *)",
+      "Bash(unzip -l loot-roller.zip)",
+      "Bash(git merge *)",
+      "Bash(git push *)",
+      "Bash(git tag *)",
+      "Bash(gh release *)",
+      "Bash(curl -sI -L \"https://github.com/nscarpinatodev/loot-roller/releases/latest/download/module.json\")"
     ]
   }
 }
