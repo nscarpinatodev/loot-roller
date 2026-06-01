@@ -24,7 +24,18 @@
       "WebFetch(domain:api.github.com)",
       "Bash(ls \"c:\\\\Users\\\\djsco\\\\.claude\\\\projects\\\\c--Users-djsco-OneDrive-Documents-GitHub-loot-roller\\\\memory\\\\\")",
       "Read(//c/Users/djsco/.claude/projects/c--Users-djsco-OneDrive-Documents-GitHub-loot-roller/**)",
-      "Bash(node --input-type=module)"
+      "Bash(node --input-type=module)",
+      "Bash(node --check scripts/main.js)",
+      "Bash(node --check scripts/systems/pf2e-adapter.js)",
+      "Bash(node --check scripts/apps/quest-generator-app.js)",
+      "Bash(node --check scripts/apps/shop-generator-app.js)",
+      "Bash(node --check scripts/systems/fallout-adapter.js)",
+      "Bash(node -e \"const fs=require\\('fs'\\);const c=fs.readFileSync\\('styles/loot-roller.css','utf8'\\);const o=\\(c.match\\(/{/g\\)||[]\\).length,cl=\\(c.match\\(/}/g\\)||[]\\).length;console.log\\('open',o,'close',cl,o===cl?'BALANCED':'MISMATCH'\\);\")",
+      "Bash(node -e \"const j=require\\('./module.json'\\);console.log\\('styles:',JSON.stringify\\(j.styles\\)\\)\")",
+      "Bash(node -e \"const j=require\\('./lang/en.json'\\);const L=j.LOOTROLLER;console.log\\('pf2e:',JSON.stringify\\(L.pf2e,null,1\\)\\);console.log\\('settings.pf2e:',JSON.stringify\\(L.settings&&L.settings.pf2e,null,1\\)\\);\")",
+      "Bash(node --check scripts/systems/starfinder2e-adapter.js)",
+      "Bash(node -e \"const j=require\\('./module.json'\\);console.log\\('valid JSON; version',j.version,'; relationships:',JSON.stringify\\(j.relationships\\)\\)\")",
+      "Bash(node --check scripts/currency-helper.js)"
     ]
   }
 }

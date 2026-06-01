@@ -1,41 +1,59 @@
 /**
- * Pathfinder 2e Loot System Adapter
+ * Starfinder 2e Loot System Adapter
  *
- * Uses the Party Treasure by Level table (CRB/GM Core) for budget-based
- * loot generation. Items are drawn from the pf2e.equipment-srd compendium
- * filtered by item level and rarity.
+ * Starfinder 2e is rules-compatible with Pathfinder 2e and shares its item data
+ * model, so this adapter mirrors the PF2e adapter's level-based generation,
+ * filtering, and mystification.  The differences are currency and packs:
  *
- * PF2e-specific field paths (different from dnd5e):
- *   rarity:         system.traits.rarity  ("common"|"uncommon"|"rare"|"unique")
- *   item level:     system.level.value    (nested object, not a bare integer)
- *   identification: system.identification.status  ("identified"|"unidentified")
+ *   - Currency is **Credits** (the standard currency).  A configurable share of
+ *     the treasure budget is paid out as **UPBs** (Universal Polymer Base), a
+ *     building resource that doubles as currency (1 UPB ≈ 1 credit in value).
+ *   - Compendium packs are auto-resolved from whatever Item compendiums the
+ *     active Starfinder 2e system ships (the exact pack IDs vary), overridable
+ *     via Module Settings → Compendium Sources.
+ *
+ * Shared PF2e-compatible field paths:
+ *   rarity:            system.traits.rarity
+ *   item level:        system.level.value
+ *   identification:    system.identification.status
  *   unidentified name: system.identification.unidentified.name
- *   consumable subtype: system.consumableType.value ("scroll"|"potion"|"elixir"|…)
+ *   consumable subtype: system.consumableType.value
  */
 
 import { LootRoller } from "../api.js";
 
 const MODULE_ID = "loot-roller";
 
-// ── Item type sets ─────────────────────────────────────────────────────────────
-const PF2E_LOOT_TYPES  = new Set(["weapon", "armor", "shield", "equipment", "consumable", "treasure"]);
+// ── System detection ───────────────────────────────────────────────────────────
+// SF2e is "its own system", but the exact id slug varies by distribution.  Match
+// the known candidates plus a Starfinder-2e title check, while explicitly
+// excluding Starfinder 1e ("sfrpg"), which has a completely different data model.
+const SF2E_SYSTEM_IDS = new Set([
+  "sf2e", "starfinder2e", "starfinder-2e", "starfinder2", "starfinderv2",
+]);
+
+/** True when the active world is running a Starfinder 2e system (not SF1e). */
+export function isStarfinder2eSystem() {
+  if (typeof game === "undefined" || !game.system) return false;
+  const id = game.system.id ?? "";
+  if (id === "sfrpg") return false;               // Starfinder 1e — different model
+  if (SF2E_SYSTEM_IDS.has(id)) return true;
+  const title = game.system.title ?? "";
+  return /starfinder/i.test(title) && /(2e|second|v2|two)/i.test(title);
+}
+
+// ── Item type sets (PF2e-compatible) ────────────────────────────────────────────
+const SF2E_LOOT_TYPES  = new Set(["weapon", "armor", "shield", "equipment", "consumable", "treasure"]);
 const PERMANENT_TYPES  = ["weapon", "armor", "shield", "equipment"];
 const CONSUMABLE_TYPES = ["consumable"];
 
-// ── PF2e-specific index / pool cache ──────────────────────────────────────────
-// CompendiumHelper's buildPool reads system.rarity (dnd5e path), which doesn't
-// exist in PF2e.  We maintain a separate cache that reads the correct fields.
+// ── SF2e-specific index / pool cache ────────────────────────────────────────────
+const _sf2eIndexCache = new Map(); // packId → Collection
+const _sf2ePoolCache  = new Map(); // sorted-packIds key → array
 
-const _pf2eIndexCache = new Map(); // packId → Collection
-const _pf2ePoolCache  = new Map(); // sorted-packIds key → array
-
-/**
- * Fetch (and cache) a PF2e-correct index for one pack.
- * Requests the fields PF2e actually uses; handles both nested-object and
- * flat-dot-key index formats (which vary across Foundry versions).
- */
-async function _getPf2eIndex(packId) {
-  if (_pf2eIndexCache.has(packId)) return _pf2eIndexCache.get(packId);
+/** Fetch (and cache) an SF2e index for one pack (PF2e-compatible fields). */
+async function _getSf2eIndex(packId) {
+  if (_sf2eIndexCache.has(packId)) return _sf2eIndexCache.get(packId);
   const pack = game.packs.get(packId);
   if (!pack) return null;
   const index = await pack.getIndex({
@@ -47,29 +65,25 @@ async function _getPf2eIndex(packId) {
       "system.price",
     ],
   }).catch((err) => {
-    console.warn(`LootRoller | PF2e getIndex failed for "${packId}":`, err);
+    console.warn(`LootRoller | SF2e getIndex failed for "${packId}":`, err);
     return null;
   });
-  if (index) _pf2eIndexCache.set(packId, index);
+  if (index) _sf2eIndexCache.set(packId, index);
   return index;
 }
 
-/**
- * Build (and cache) a flat array of loot-eligible PF2e items from multiple packs.
- * Each entry carries the correctly extracted rarity, item level, and consumable type.
- */
-async function _buildPf2ePool(packIds) {
+/** Build (and cache) a flat array of loot-eligible SF2e items from multiple packs. */
+async function _buildSf2ePool(packIds) {
   const key = [...packIds].sort().join(",");
-  if (_pf2ePoolCache.has(key)) return _pf2ePoolCache.get(key);
+  if (_sf2ePoolCache.has(key)) return _sf2ePoolCache.get(key);
 
   const pool = [];
   for (const packId of packIds) {
-    const index = await _getPf2eIndex(packId);
+    const index = await _getSf2eIndex(packId);
     if (!index) continue;
     for (const entry of index) {
-      if (!PF2E_LOOT_TYPES.has(entry.type)) continue;
+      if (!SF2E_LOOT_TYPES.has(entry.type)) continue;
 
-      // Rarity — PF2e: system.traits.rarity; fall back through dnd5e path too
       const rarityRaw =
         entry.system?.traits?.rarity ??
         entry["system.traits.rarity"] ??
@@ -77,37 +91,31 @@ async function _buildPf2ePool(packIds) {
         "common";
       const rarity = String(rarityRaw).toLowerCase();
 
-      // Level — PF2e: system.level.value (nested); handle plain-number fallback
       const levelObj = entry.system?.level ?? entry["system.level"];
       const level    = levelObj?.value ?? (typeof levelObj === "number" ? levelObj : 0);
 
-      // Consumable subtype — PF2e: system.consumableType.value
-      const ctObj         = entry.system?.consumableType ?? entry["system.consumableType"];
+      const ctObj          = entry.system?.consumableType ?? entry["system.consumableType"];
       const consumableType = (ctObj?.value ?? "").toLowerCase();
 
       pool.push({ packId, id: entry._id, name: entry.name, type: entry.type, rarity, level, consumableType, img: entry.img });
     }
   }
 
-  _pf2ePoolCache.set(key, pool);
-  console.log(`LootRoller | PF2e pool ready: ${pool.length} items across ${packIds.length} pack(s)`);
+  _sf2ePoolCache.set(key, pool);
+  console.log(`LootRoller | SF2e pool ready: ${pool.length} items across ${packIds.length} pack(s)`);
   return pool;
 }
 
-/** Clear all PF2e-specific caches (call when compendium selection changes). */
-function _clearPf2eCache() {
-  _pf2eIndexCache.clear();
-  _pf2ePoolCache.clear();
+/** Clear all SF2e-specific caches (call when compendium selection changes). */
+function _clearSf2eCache() {
+  _sf2eIndexCache.clear();
+  _sf2ePoolCache.clear();
 }
 
-/**
- * Filter the pool by item type category, level tolerance, and rarity flags.
- * @param {object[]} pool
- * @param {{ allowedTypes: string[], targetLevel: number, tolerance: number, includeUncommon: boolean, includeRare: boolean }} opts
- */
+/** Filter the pool by item type category, level tolerance, and rarity flags. */
 function _filterPool(pool, { allowedTypes, targetLevel, tolerance, includeUncommon, includeRare }) {
   return pool.filter((e) => {
-    if (!allowedTypes.includes(e.type))             return false;
+    if (!allowedTypes.includes(e.type))              return false;
     if (Math.abs(e.level - targetLevel) > tolerance) return false;
     if (e.rarity === "unique")                       return false;
     if (e.rarity === "rare"     && !includeRare)     return false;
@@ -116,11 +124,8 @@ function _filterPool(pool, { allowedTypes, targetLevel, tolerance, includeUncomm
   });
 }
 
-/**
- * Return a generic display label for a PF2e mystified item based on its type.
- * Used as system.identification.unidentified.name so PF2e hides the real name.
- */
-function _pf2eUnidentifiedLabel(data) {
+/** Generic display label for a mystified SF2e item based on its type. */
+function _sf2eUnidentifiedLabel(data) {
   const consumableType = data.system?.consumableType?.value ?? "";
   switch (data.type) {
     case "weapon":     return "Unidentified Weapon";
@@ -128,8 +133,7 @@ function _pf2eUnidentifiedLabel(data) {
     case "shield":     return "Unidentified Shield";
     case "consumable":
       if (consumableType === "scroll") return "Unidentified Scroll";
-      if (consumableType === "potion") return "Unidentified Potion";
-      if (consumableType === "wand")   return "Unidentified Wand";
+      if (consumableType === "potion") return "Unidentified Serum";
       if (consumableType === "elixir") return "Unidentified Elixir";
       return "Unidentified Consumable";
     default:
@@ -137,7 +141,21 @@ function _pf2eUnidentifiedLabel(data) {
   }
 }
 
-// ── Party Treasure by Level (4-player base, GM Core) ──────────────────────────
+/**
+ * Resolve the default SF2e pack IDs: every Item compendium shipped by the active
+ * Starfinder 2e system.  Pack IDs vary by distribution, so we match by package.
+ */
+function _resolveDefaultSf2ePacks() {
+  if (typeof game === "undefined" || !game.packs) return [];
+  const sysId = game.system?.id ?? "";
+  return game.packs
+    .filter((p) => p.documentName === "Item" &&
+      (p.metadata?.packageName === sysId || (p.collection ?? "").startsWith(`${sysId}.`)))
+    .map((p) => p.collection);
+}
+
+// ── Treasure by Level (4-player base; values mirror the PF2e GM Core table,
+//    interpreted as credits since SF2e is rules-compatible). ───────────────────
 const TREASURE_BY_LEVEL = {
   1:  { total: 175,    permanent: [[2,2],[2,1]],       consumables: [[2,2],[2,1],[3,1]],        currency: 40,    perPC: 10 },
   2:  { total: 300,    permanent: [[2,3],[2,2]],       consumables: [[2,3],[2,2],[2,1]],        currency: 70,    perPC: 18 },
@@ -161,13 +179,14 @@ const TREASURE_BY_LEVEL = {
   20: { total: 490000, permanent: [[4,20]],            consumables: [[4,20],[2,19]],            currency: 140000,perPC: 35000 },
 };
 
-const PACK_IDS = ["pf2e.equipment-srd", "pf2e.equipment"];
+// Share of the currency budget paid out as UPBs instead of credits.
+const UPB_YIELD_FACTOR = { none: 0, low: 0.1, standard: 0.25, high: 0.5 };
 
 // ── Adapter ───────────────────────────────────────────────────────────────────
 
-export class PF2eAdapter {
-  static systemId   = "pf2e";
-  static systemName = "Pathfinder 2nd Edition";
+export class Starfinder2eAdapter {
+  static systemId   = "sf2e";
+  static systemName = "Starfinder 2nd Edition";
 
   static getGeneratorFields() {
     const range = (from, to) => {
@@ -178,47 +197,60 @@ export class PF2eAdapter {
     return [
       {
         name: "partyLevel",
-        label: "LOOTROLLER.pf2e.field.partyLevel",
+        label: "LOOTROLLER.sf2e.field.partyLevel",
         type: "select",
         default: 1,
         options: range(1, 20),
       },
       {
         name: "partySize",
-        label: "LOOTROLLER.pf2e.field.partySize",
+        label: "LOOTROLLER.sf2e.field.partySize",
         type: "select",
         default: 4,
         options: range(1, 8),
-        hint: "LOOTROLLER.pf2e.field.partySizeHint",
+        hint: "LOOTROLLER.sf2e.field.partySizeHint",
       },
       {
         name: "lootScope",
-        label: "LOOTROLLER.pf2e.field.lootScope",
+        label: "LOOTROLLER.sf2e.field.lootScope",
         type: "select",
         options: [
-          { value: "full",      label: "LOOTROLLER.pf2e.lootScope.full" },
-          { value: "encounter", label: "LOOTROLLER.pf2e.lootScope.encounter" },
-          { value: "custom",    label: "LOOTROLLER.pf2e.lootScope.custom" },
+          { value: "full",      label: "LOOTROLLER.sf2e.lootScope.full" },
+          { value: "encounter", label: "LOOTROLLER.sf2e.lootScope.encounter" },
+          { value: "custom",    label: "LOOTROLLER.sf2e.lootScope.custom" },
         ],
         default: "full",
       },
       {
         name: "customBudget",
-        label: "LOOTROLLER.pf2e.field.customBudget",
+        label: "LOOTROLLER.sf2e.field.customBudget",
         type: "number",
         default: 0,
-        hint: "LOOTROLLER.pf2e.field.customBudgetHint",
+        hint: "LOOTROLLER.sf2e.field.customBudgetHint",
         showWhen: { field: "lootScope", value: "custom" },
       },
       {
+        name: "upbYield",
+        label: "LOOTROLLER.sf2e.field.upbYield",
+        type: "select",
+        options: [
+          { value: "none",     label: "LOOTROLLER.sf2e.upbYield.none" },
+          { value: "low",      label: "LOOTROLLER.sf2e.upbYield.low" },
+          { value: "standard", label: "LOOTROLLER.sf2e.upbYield.standard" },
+          { value: "high",     label: "LOOTROLLER.sf2e.upbYield.high" },
+        ],
+        default: "standard",
+        hint: "LOOTROLLER.sf2e.field.upbYieldHint",
+      },
+      {
         name: "includeUncommon",
-        label: "LOOTROLLER.pf2e.field.includeUncommon",
+        label: "LOOTROLLER.sf2e.field.includeUncommon",
         type: "checkbox",
         default: true,
       },
       {
         name: "includeRare",
-        label: "LOOTROLLER.pf2e.field.includeRare",
+        label: "LOOTROLLER.sf2e.field.includeRare",
         type: "checkbox",
         default: false,
       },
@@ -236,55 +268,61 @@ export class PF2eAdapter {
 
     const sizeAdjust = (partySize - 4) * row.perPC;
 
-    let budgetGP;
+    let budget;
     if (params.lootScope === "custom") {
-      budgetGP = Math.max(0, parseInt(params.customBudget) || 0);
+      budget = Math.max(0, parseInt(params.customBudget) || 0);
     } else if (params.lootScope === "encounter") {
-      budgetGP = Math.round((row.total + sizeAdjust) / 10);
+      budget = Math.round((row.total + sizeAdjust) / 10);
     } else {
-      budgetGP = row.total + sizeAdjust;
+      budget = row.total + sizeAdjust;
     }
 
     const itemRefs = [];
 
     for (const [count, level] of (row.permanent ?? [])) {
       for (let i = 0; i < count; i++) {
-        itemRefs.push({ name: null, type: null, rarity: "common", level, _pf2eType: "permanent", includeUncommon, includeRare });
+        itemRefs.push({ name: null, type: null, rarity: "common", level, _sf2eType: "permanent", includeUncommon, includeRare });
       }
     }
 
     for (const [count, level] of (row.consumables ?? [])) {
       for (let i = 0; i < count; i++) {
-        itemRefs.push({ name: null, type: "consumable", rarity: "common", level, _pf2eType: "consumable", includeUncommon, includeRare });
+        itemRefs.push({ name: null, type: "consumable", rarity: "common", level, _sf2eType: "consumable", includeUncommon, includeRare });
       }
     }
 
-    const currencyGP = Math.min(budgetGP, row.currency + Math.max(0, sizeAdjust));
-    const coins = { gp: Math.floor(currencyGP), sp: 0, cp: 0 };
+    // Split the currency budget between credits and UPBs (1 UPB ≈ 1 credit).
+    const currencyValue = Math.floor(Math.min(budget, row.currency + Math.max(0, sizeAdjust)));
+    const upbFactor     = UPB_YIELD_FACTOR[params.upbYield] ?? UPB_YIELD_FACTOR.standard;
+    const upb           = Math.floor(currencyValue * upbFactor);
+    const credits       = Math.max(0, currencyValue - upb);
+
+    // Keys match the SF2e inventory.coins schema ({ credits, upb }).
+    const coins = {};
+    if (credits) coins.credits = credits;
+    if (upb)     coins.upb     = upb;
 
     return { coins, items: itemRefs };
   }
 
   static async resolveItems(itemRefs) {
     const resolved = [];
-    const packs    = PF2eAdapter.getActivePacks();
-    const pool     = await _buildPf2ePool(packs);
+    const packs    = Starfinder2eAdapter.getActivePacks();
+    const pool     = await _buildSf2ePool(packs);
 
     let includeUncommon = false;
     let includeRare     = false;
-    try { includeUncommon = game.settings.get(MODULE_ID, "pf2e.includeUncommon"); } catch {}
-    try { includeRare     = game.settings.get(MODULE_ID, "pf2e.includeRare");     } catch {}
+    try { includeUncommon = game.settings.get(MODULE_ID, "sf2e.includeUncommon"); } catch {}
+    try { includeRare     = game.settings.get(MODULE_ID, "sf2e.includeRare");     } catch {}
 
     for (const ref of itemRefs) {
-      const isPermanent  = ref._pf2eType === "permanent";
+      const isPermanent  = ref._sf2eType === "permanent";
       const targetLevel  = ref.level ?? 1;
       const allowedTypes = isPermanent ? PERMANENT_TYPES : CONSUMABLE_TYPES;
 
-      // Merge per-ref overrides with global settings
       const wantUncommon = ref.includeUncommon ?? includeUncommon;
       const wantRare     = ref.includeRare     ?? includeRare;
 
-      // Try ±1 level first, then widen to ±2 if nothing found
       let candidates = _filterPool(pool, { allowedTypes, targetLevel, tolerance: 1, includeUncommon: wantUncommon, includeRare: wantRare });
       if (!candidates.length) {
         candidates = _filterPool(pool, { allowedTypes, targetLevel, tolerance: 2, includeUncommon: true, includeRare: wantRare });
@@ -304,11 +342,10 @@ export class PF2eAdapter {
       const doc  = await game.packs.get(pick.packId)?.getDocument(pick.id).catch(() => null);
 
       if (doc) {
-        // Rare and unique items arrive mystified
         if (pick.rarity === "rare" || pick.rarity === "unique") {
           const data = doc.toObject();
           data._sourceUuid = doc.uuid;
-          PF2eAdapter.applyMystification(data);
+          Starfinder2eAdapter.applyMystification(data);
           resolved.push(data);
         } else {
           resolved.push(doc);
@@ -327,24 +364,24 @@ export class PF2eAdapter {
   }
 
   static getCompendiumPacks() {
-    return PACK_IDS;
+    return _resolveDefaultSf2ePacks();
   }
 
   static getSettings() {
     return [
       {
-        key: "pf2e.includeUncommon",
-        name: "LOOTROLLER.settings.pf2e.includeUncommon.name",
-        hint: "LOOTROLLER.settings.pf2e.includeUncommon.hint",
+        key: "sf2e.includeUncommon",
+        name: "LOOTROLLER.settings.sf2e.includeUncommon.name",
+        hint: "LOOTROLLER.settings.sf2e.includeUncommon.hint",
         scope: "world",
         config: true,
         type: Boolean,
         default: false,
       },
       {
-        key: "pf2e.includeRare",
-        name: "LOOTROLLER.settings.pf2e.includeRare.name",
-        hint: "LOOTROLLER.settings.pf2e.includeRare.hint",
+        key: "sf2e.includeRare",
+        name: "LOOTROLLER.settings.sf2e.includeRare.name",
+        hint: "LOOTROLLER.settings.sf2e.includeRare.hint",
         scope: "world",
         config: true,
         type: Boolean,
@@ -354,21 +391,16 @@ export class PF2eAdapter {
   }
 
   /**
-   * Return filter field descriptors for the Quest and Shop generators.
-   * PF2e uses item level instead of rarity, presented differently per mode:
-   *   - quest: a Party Level dropdown (1–20). The adapter converts the chosen
-   *            level into an item-level window via partyLevelToItemRange().
-   *   - shop:  a Low/High item-level range (1–25) for direct control.
-   *
-   * @param {{ mode?: "quest"|"shop", partyLevel?: number, levelRange?: [number,number] }} state
-   * @returns {Array<FilterFieldDescriptor>}
+   * Filter field descriptors for the Quest and Shop generators (PF2e-style):
+   *   - quest: a Party Level dropdown (1–20).
+   *   - shop:  a Low/High item-level range (0–30).
    */
   static getFilterFields({ mode = "quest", partyLevel = 5, levelRange } = {}) {
     if (mode === "shop") {
       const minL = 0, maxL = 30;
       let [low, high] = Array.isArray(levelRange)
         ? levelRange
-        : PF2eAdapter.partyLevelToItemRange(partyLevel);
+        : Starfinder2eAdapter.partyLevelToItemRange(partyLevel);
       low  = Math.max(minL, Math.min(maxL, low));
       high = Math.max(low,  Math.min(maxL, high));
       return [{
@@ -382,7 +414,6 @@ export class PF2eAdapter {
       }];
     }
 
-    // quest → Party Level dropdown
     const options = [];
     for (let i = 1; i <= 20; i++) {
       options.push({ value: i, label: String(i), selected: i === partyLevel });
@@ -390,7 +421,7 @@ export class PF2eAdapter {
     return [{
       type:  "select",
       key:   "partyLevel",
-      label: "LOOTROLLER.pf2e.field.partyLevel",
+      label: "LOOTROLLER.sf2e.field.partyLevel",
       options,
     }];
   }
@@ -427,57 +458,39 @@ export class PF2eAdapter {
         if (enabled.length) return enabled;
       }
     } catch {}
-    return PACK_IDS.filter((id) => game.packs.has(id));
+    return _resolveDefaultSf2ePacks();
   }
 
-  /** Pre-warm the PF2e pool (clears old cache first). */
+  /** Pre-warm the SF2e pool (clears old cache first). */
   static async warmPool() {
-    _clearPf2eCache();
-    return _buildPf2ePool(PF2eAdapter.getActivePacks());
+    _clearSf2eCache();
+    return _buildSf2ePool(Starfinder2eAdapter.getActivePacks());
   }
 
-  /**
-   * Describe the level-based filter this system uses in place of rarity.
-   * Returning a non-null value causes the quest/shop generators to show a
-   * party-level input instead of rarity buttons.
-   *
-   * mode "partyLevel": a single party-level number (1–20); the adapter converts
-   * it to an appropriate item-level window internally.
-   *
-   * @returns {{ mode: "partyLevel", min: number, max: number, default: number }}
-   */
   static getItemLevelRange() {
     return { mode: "partyLevel", min: 1, max: 20, default: 5 };
   }
 
-  /**
-   * Convert a party level to the item-level window used for compendium search.
-   * Mirrors the spread in TREASURE_BY_LEVEL: items are at partyLevel–1 through
-   * partyLevel+2, clamped to [1, 25].
-   *
-   * @param {number} partyLevel
-   * @returns {[number, number]}
-   */
+  /** Convert a party level to the item-level window (partyLevel-1 .. partyLevel+2). */
   static partyLevelToItemRange(partyLevel) {
     return [Math.max(1, partyLevel - 1), Math.min(25, partyLevel + 2)];
   }
 
   /**
-   * Find compendium items matching the given filters.
-   * Uses the PF2e-specific pool so rarity is read from system.traits.rarity.
+   * Find compendium items matching the given filters (PF2e-compatible pool).
    *
    * @param {{
    *   rarities?:     string[],
    *   types?:        string[],
    *   limit?:        number,
    *   excludeNames?: Set<string>,
-   *   partyLevel?:   number              PF2e: converted to item-level window, replaces rarities
-   *   levelRange?:   [number, number]    PF2e: explicit [low, high] item-level window, replaces rarities
+   *   partyLevel?:   number,
+   *   levelRange?:   [number, number]
    * }} params
    */
   static async findItems({ rarities, types, limit = 1, excludeNames, partyLevel, levelRange } = {}) {
-    const packs = PF2eAdapter.getActivePacks();
-    const pool  = await _buildPf2ePool(packs);
+    const packs = Starfinder2eAdapter.getActivePacks();
+    const pool  = await _buildSf2ePool(packs);
 
     const rarityNorms = rarities?.map((r) => r.toLowerCase().replace(/\s+/g, ""));
     const excluded    = excludeNames instanceof Set ? excludeNames : new Set(excludeNames ?? []);
@@ -490,7 +503,7 @@ export class PF2eAdapter {
       const [minL, maxL] = levelRange;
       candidates = candidates.filter((e) => e.level >= minL && e.level <= maxL);
     } else if (partyLevel !== undefined) {
-      const [minL, maxL] = PF2eAdapter.partyLevelToItemRange(partyLevel);
+      const [minL, maxL] = Starfinder2eAdapter.partyLevelToItemRange(partyLevel);
       candidates = candidates.filter((e) => e.level >= minL && e.level <= maxL);
     } else if (rarityNorms?.length) {
       candidates = candidates.filter((e) => rarityNorms.includes(e.rarity));
@@ -502,49 +515,31 @@ export class PF2eAdapter {
     return docs.filter(Boolean);
   }
 
-  /** Clear the PF2e pool cache — called by CompendiumSettingsApp when packs change. */
+  /** Clear the SF2e pool cache — called by CompendiumSettingsApp when packs change. */
   static clearPool() {
-    _clearPf2eCache();
+    _clearSf2eCache();
   }
 
-  // ── Identification helpers (PF2e uses system.identification.status) ──────────
+  // ── Identification helpers (PF2e-compatible: system.identification.status) ────
 
-  /**
-   * Apply mystification to a plain item data object.
-   * Sets system.identification.status = "unidentified" and fills in a generic
-   * unidentified name so PF2e hides the real item name from players.
-   *
-   * @param {object} data  Plain item data object (from toObject() or plain JS).
-   */
   static applyMystification(data) {
     if (!data.system?.identification) return;
     data.system.identification.status = "unidentified";
     data.system.identification.unidentified ??= {};
     if (!data.system.identification.unidentified.name) {
-      data.system.identification.unidentified.name = _pf2eUnidentifiedLabel(data);
+      data.system.identification.unidentified.name = _sf2eUnidentifiedLabel(data);
     }
   }
 
-  /**
-   * Remove mystification from a plain item data object.
-   */
   static clearMystification(data) {
     if (!data.system?.identification) return;
     data.system.identification.status = "identified";
   }
 
-  /**
-   * Return true if the item data is in an unidentified state.
-   * @param {object} data
-   */
   static isMystified(data) {
     return data.system?.identification?.status === "unidentified";
   }
 
-  /**
-   * Read the display name for an item, respecting PF2e identification.
-   * @param {object} item
-   */
   static getDisplayName(item) {
     if (item.system?.identification?.status === "unidentified") {
       return item.system.identification.unidentified?.name
@@ -553,10 +548,6 @@ export class PF2eAdapter {
     return item.name;
   }
 
-  /**
-   * Read the display description for an item, respecting PF2e identification.
-   * @param {object} item
-   */
   static getDisplayDescription(item) {
     if (item.system?.identification?.status === "unidentified") {
       return item.system.identification.unidentified?.description ?? "";
@@ -566,7 +557,11 @@ export class PF2eAdapter {
 }
 
 Hooks.once("init", () => {
-  if (game.system.id === "pf2e") {
-    LootRoller.registerSystem(PF2eAdapter);
+  if (isStarfinder2eSystem()) {
+    // Register under the world's actual system id (the SF2e slug varies by
+    // distribution) so LootRoller.getAdapter() — which keys off game.system.id —
+    // resolves this adapter regardless of the exact id.
+    Starfinder2eAdapter.systemId = game.system.id;
+    LootRoller.registerSystem(Starfinder2eAdapter);
   }
 });

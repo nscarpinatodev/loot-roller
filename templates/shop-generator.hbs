@@ -39,6 +39,31 @@
               value="{{this.current}}" min="{{this.min}}" max="{{this.max}}" />
           </div>
         {{/if}}
+        {{#if (lootrollerEq this.type "select")}}
+          <select class="filter-select-field" data-filter-key="{{this.key}}">
+            {{#each this.options}}
+              <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+            {{/each}}
+          </select>
+        {{/if}}
+        {{#if (lootrollerEq this.type "level-range")}}
+          <div class="level-range-slider" data-filter-key="{{this.key}}"
+            data-min="{{this.min}}" data-max="{{this.max}}">
+            <div class="level-range-readout">
+              <span class="level-range-label">{{localize "LOOTROLLER.levelRange.low"}}
+                <strong class="level-range-value-low">{{this.low}}</strong></span>
+              <span class="level-range-label">{{localize "LOOTROLLER.levelRange.high"}}
+                <strong class="level-range-value-high">{{this.high}}</strong></span>
+            </div>
+            <div class="level-range-track">
+              <div class="level-range-fill"></div>
+              <input type="range" class="level-range-low" data-filter-key="{{this.key}}"
+                min="{{this.min}}" max="{{this.max}}" step="1" value="{{this.low}}" />
+              <input type="range" class="level-range-high" data-filter-key="{{this.key}}"
+                min="{{this.min}}" max="{{this.max}}" step="1" value="{{this.high}}" />
+            </div>
+          </div>
+        {{/if}}
       </div>
     {{/each}}
 
@@ -61,6 +86,9 @@
       {{#if generating}}
         <i class="fa-solid fa-spinner fa-spin"></i>
         {{localize "LOOTROLLER.shop.generating"}}
+      {{else if hasItems}}
+        <i class="fa-solid fa-rotate"></i>
+        {{localize "LOOTROLLER.shop.addMore"}}
       {{else}}
         <i class="fa-solid fa-store"></i>
         {{localize "LOOTROLLER.shop.generate"}}
@@ -72,11 +100,17 @@
   {{!-- Generated inventory --}}
   {{#if hasItems}}
     <div class="shop-inventory">
-      <h3 class="section-label">
-        <i class="fa-solid fa-boxes-stacked"></i>
-        {{localize "LOOTROLLER.shop.inventory"}}
-        <span class="item-count">({{items.length}})</span>
-      </h3>
+      <div class="loot-results-header">
+        <h3 class="section-label">
+          <i class="fa-solid fa-boxes-stacked"></i>
+          {{localize "LOOTROLLER.shop.inventory"}}
+          <span class="item-count">({{items.length}})</span>
+        </h3>
+        <button type="button" class="btn-icon-remove" data-action="clear-inventory"
+                title="{{localize 'LOOTROLLER.shop.clearInventory'}}">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
       <div class="item-list">
         {{#each items}}
           <div class="lottery-item {{#if this.stub}}stub{{/if}}">

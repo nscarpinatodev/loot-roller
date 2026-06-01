@@ -45,6 +45,30 @@
         {{localize "LOOTROLLER.app.generateButton"}}
       </button>
     </div>
+
+    {{!-- Results section — populated and shown dynamically after each roll --}}
+    <div class="loot-results-section" style="display: none;">
+      <div class="loot-results-header">
+        <h3 class="section-label">
+          <i class="fa-solid fa-sack-dollar"></i>
+          {{localize "LOOTROLLER.app.resultsTitle"}}
+          <span class="loot-item-count"></span>
+        </h3>
+        <button type="button" class="btn-icon-remove loot-clear-btn" data-action="clear-results"
+                title="{{localize 'LOOTROLLER.app.clearResults'}}">
+          <i class="fa-solid fa-trash"></i>
+        </button>
+      </div>
+      <div class="loot-result-coins"></div>
+      <ul class="loot-result-items"></ul>
+      <div class="reward-actions">
+        <button type="button" class="btn-distribute" data-action="proceed-to-lottery">
+          <i class="fa-solid fa-dice-d20"></i>
+          {{localize "LOOTROLLER.app.proceedButton"}}
+        </button>
+      </div>
+    </div>
+
   {{else}}
     <div class="no-adapter">
       <i class="fa-solid fa-circle-exclamation"></i>

@@ -27,7 +27,7 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     this._shopName   = "";
     this._rarities   = ["common", "uncommon"];
     this._types      = [];
-    this._partyLevel = null;   // party level for PF2e; null = use rarity
+    this._levelRange = null;   // [low, high] item-level window for PF2e; null = use rarity
     this._itemCount  = 10;
     this._items      = [];
     this._generating = false;
@@ -37,12 +37,13 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     const adapter   = LootRoller.getAdapter();
     const itemTypes = adapter?.getItemTypes?.() ?? [];
 
-    // Seed party level from adapter default on first open
-    if (this._partyLevel === null && adapter?.getItemLevelRange) {
-      this._partyLevel = adapter.getItemLevelRange().default ?? 5;
+    // Seed the level range from the adapter default on first open (PF2e only)
+    if (this._levelRange === null && adapter?.getItemLevelRange && adapter?.partyLevelToItemRange) {
+      const def = adapter.getItemLevelRange().default ?? 5;
+      this._levelRange = adapter.partyLevelToItemRange(def);
     }
 
-    const filterState  = { selectedRarities: this._rarities, partyLevel: this._partyLevel ?? 5 };
+    const filterState  = { mode: "shop", selectedRarities: this._rarities, levelRange: this._levelRange ?? undefined };
     const filterFields = adapter?.getFilterFields?.(filterState) ?? [{
       type:    "rarity-buttons",
       key:     "rarities",
@@ -102,14 +103,8 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
       });
     });
 
-    this.element.querySelectorAll(".filter-number-field").forEach((input) => {
-      input.addEventListener("change", () => {
-        const key = input.dataset.filterKey;
-        const val = Math.max(parseInt(input.min) || 1, Math.min(parseInt(input.max) || 20, parseInt(input.value) || 1));
-        input.value = val;
-        if (key === "partyLevel") this._partyLevel = val;
-      });
-    });
+    // Low/High item-level dual slider (PF2e Shop Generator)
+    this._initLevelRangeSlider();
 
     this.element.querySelectorAll("[data-action=toggle-type]").forEach((btn) => {
       btn.addEventListener("click", () => {
@@ -138,6 +133,56 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     this.element.querySelector("[data-action=create-shop]")
       ?.addEventListener("click", () => this._createShop());
 
+    this.element.querySelector("[data-action=clear-inventory]")
+      ?.addEventListener("click", () => {
+        this._items = [];
+        this.render(false);
+      });
+
+  }
+
+  /**
+   * Wire up the dual-handle low/high item-level slider. Updates this._levelRange
+   * and repaints the fill + value readouts live on drag, without a full re-render
+   * (a re-render would interrupt the drag).
+   */
+  _initLevelRangeSlider() {
+    const slider = this.element.querySelector(".level-range-slider");
+    if (!slider) return;
+
+    const lowEl   = slider.querySelector(".level-range-low");
+    const highEl  = slider.querySelector(".level-range-high");
+    const fill    = slider.querySelector(".level-range-fill");
+    const lowVal  = slider.querySelector(".level-range-value-low");
+    const highVal = slider.querySelector(".level-range-value-high");
+    if (!lowEl || !highEl) return;
+
+    const min  = parseInt(slider.dataset.min) || 0;
+    const max  = parseInt(slider.dataset.max) || 30;
+    const span = (max - min) || 1;
+
+    const paint = () => {
+      const lo = parseInt(lowEl.value);
+      const hi = parseInt(highEl.value);
+      if (fill) {
+        fill.style.left  = `${((lo - min) / span) * 100}%`;
+        fill.style.right = `${100 - ((hi - min) / span) * 100}%`;
+      }
+      if (lowVal)  lowVal.textContent  = lo;
+      if (highVal) highVal.textContent = hi;
+      this._levelRange = [lo, hi];
+    };
+
+    lowEl.addEventListener("input", () => {
+      if (parseInt(lowEl.value) > parseInt(highEl.value)) highEl.value = lowEl.value;
+      paint();
+    });
+    highEl.addEventListener("input", () => {
+      if (parseInt(highEl.value) < parseInt(lowEl.value)) lowEl.value = highEl.value;
+      paint();
+    });
+
+    paint(); // initial fill + readout
   }
 
   async _generate() {
@@ -145,18 +190,18 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
     if (!adapter) return;
 
     this._generating = true;
-    this._items      = [];
     this.render(false);
 
     try {
       const types      = this._types.length ? this._types : null;
       const findParams = { types, limit: this._itemCount };
-      if (this._partyLevel !== null) {
-        findParams.partyLevel = this._partyLevel;
+      if (Array.isArray(this._levelRange)) {
+        findParams.levelRange = this._levelRange;
       } else {
         findParams.rarities = this._rarities;
       }
-      this._items   = await adapter.findItems(findParams);
+      const newItems = await adapter.findItems(findParams);
+      this._items.push(...newItems);
     } catch (err) {
       console.error("LootRoller | Shop generation error:", err);
     } finally {

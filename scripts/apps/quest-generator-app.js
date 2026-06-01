@@ -48,7 +48,7 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
     }
 
     // Adapter provides the filter field descriptors; fall back to rarity buttons
-    const filterState = { selectedRarities: this._rarities, partyLevel: this._partyLevel ?? 5 };
+    const filterState = { mode: "quest", selectedRarities: this._rarities, partyLevel: this._partyLevel ?? 5 };
     const filterFields = adapter?.getFilterFields?.(filterState) ?? [{
       type:    "rarity-buttons",
       key:     "rarities",
@@ -115,6 +115,15 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
         const val = Math.max(parseInt(input.min) || 1, Math.min(parseInt(input.max) || 20, parseInt(input.value) || 1));
         input.value = val;
         if (key === "partyLevel") this._partyLevel = val;
+      });
+    });
+
+    // Party-level dropdown (PF2e Quest Rewards)
+    this.element.querySelectorAll(".filter-select-field").forEach((sel) => {
+      sel.addEventListener("change", () => {
+        if (sel.dataset.filterKey === "partyLevel") {
+          this._partyLevel = parseInt(sel.value) || 5;
+        }
       });
     });
 

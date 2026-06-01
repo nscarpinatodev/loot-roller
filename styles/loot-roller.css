@@ -1,5 +1,14 @@
 /* ============================================================
    Loot Roller — Module Stylesheet
+
+   NOTE: Generic element classes (.item-name, .item-info, .btn-*,
+   .filter-*, etc.) are scoped under the module root class
+   `.loot-roller` so they never leak onto game-system sheets that
+   reuse the same class names.  Module-unique component classes
+   (.lottery-setup, .shop-config, .hub-*, .comp-*, .saved-list-*,
+   .loot-roller-chat, .loot-roller-control) are left unscoped:
+   they can't collide, and some sit on the window root element
+   where a descendant prefix would not match.
    ============================================================ */
 
 /* ── Shared ─────────────────────────────────────────────── */
@@ -56,7 +65,13 @@
 
 .loot-roller-generate .form-group label {
   font-weight: bold;
-  text-align: right;
+  text-align: left;
+}
+
+.loot-roller-generate .form-group input,
+.loot-roller-generate .form-group select {
+  justify-self: end;
+  width: 100%;
 }
 
 .loot-roller-generate .form-group .hint {
@@ -66,7 +81,7 @@
   margin: 0;
 }
 
-.btn-generate {
+.loot-roller .btn-generate {
   padding: 8px 16px;
   background: var(--color-button-active, #4a7a4a);
   color: #fff;
@@ -79,11 +94,62 @@
   gap: 6px;
 }
 
-.btn-generate:hover {
+.loot-roller .btn-generate:hover {
   filter: brightness(1.1);
 }
 
-.no-adapter {
+/* ── Treasure Hoard results accumulator ─────────────────── */
+.loot-roller .loot-results-section {
+  border-top: 1px solid var(--color-border-light-tertiary, rgba(0,0,0,0.15));
+  margin-top: 12px;
+  padding-top: 8px;
+}
+
+.loot-roller .loot-results-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.loot-roller .loot-results-header .section-label {
+  margin: 0;
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.loot-roller .loot-result-coins {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.loot-roller .loot-coin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.06);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.loot-roller .loot-result-items {
+  list-style: none;
+  margin: 0 0 8px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-height: 280px;
+  overflow-y: auto;
+}
+
+.loot-roller .no-adapter {
   text-align: center;
   padding: 24px;
   color: var(--color-text-light-7);
@@ -109,25 +175,25 @@
 }
 
 /* Coins row */
-.coins-row {
+.loot-roller .coins-row {
   display: flex;
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
 }
 
-.coins-amount {
+.loot-roller .coins-amount {
   font-size: 15px;
   font-weight: bold;
   color: goldenrod;
 }
 
-.coin-destination {
+.loot-roller .coin-destination {
   display: flex;
   gap: 6px;
 }
 
-.currency-btn {
+.loot-roller .currency-btn {
   padding: 3px 8px;
   border-radius: 3px;
   border: 1px solid var(--color-border-light);
@@ -138,14 +204,14 @@
   transition: color 0.15s, border-color 0.15s;
 }
 
-.currency-btn.selected {
+.loot-roller .currency-btn.selected {
   color: var(--color-text-primary);
   border-color: var(--color-border-highlight);
   font-weight: bold;
 }
 
 /* Party stash drop target */
-.party-stash-drop {
+.loot-roller .party-stash-drop {
   min-height: 36px;
   border: 2px dashed var(--color-border-light);
   border-radius: 6px;
@@ -158,28 +224,28 @@
   transition: border-color 0.2s, background 0.2s;
 }
 
-.party-stash-drop:hover,
-.party-stash-drop.drag-over {
+.loot-roller .party-stash-drop:hover,
+.loot-roller .party-stash-drop.drag-over {
   border-color: var(--color-border-highlight);
   background: rgba(0, 0, 0, 0.05);
 }
 
-.stash-name {
+.loot-roller .stash-name {
   font-weight: bold;
 }
 
-.stash-clear {
+.loot-roller .stash-clear {
   margin-left: auto;
   color: var(--color-text-light-7);
   cursor: pointer;
 }
 
-.stash-clear:hover {
+.loot-roller .stash-clear:hover {
   color: var(--color-text-error);
 }
 
 /* Item list */
-.item-list {
+.loot-roller .item-list {
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -187,7 +253,7 @@
   overflow-y: auto;
 }
 
-.lottery-item {
+.loot-roller .lottery-item {
   display: grid;
   grid-template-columns: 36px 1fr auto;
   align-items: center;
@@ -199,7 +265,7 @@
 }
 
 /* Clickable item image button */
-.item-img-btn {
+.loot-roller .item-img-btn {
   width: 36px;
   height: 36px;
   padding: 0;
@@ -210,27 +276,27 @@
   flex-shrink: 0;
   display: block;
 }
-.item-img-btn:hover img { opacity: 0.8; }
+.loot-roller .item-img-btn:hover img { opacity: 0.8; }
 
 /* Mystified item row */
-.lottery-item.mystified { border-color: rgba(130, 80, 223, 0.25); }
-.dest-mystify.selected  { color: #8250df; border-color: #8250df; background: rgba(130,80,223,0.08); }
+.loot-roller .lottery-item.mystified { border-color: rgba(130, 80, 223, 0.25); }
+.loot-roller .dest-mystify.selected  { color: #8250df; border-color: #8250df; background: rgba(130,80,223,0.08); }
 
-.lottery-item:hover {
+.loot-roller .lottery-item:hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
-.lottery-item.active {
+.loot-roller .lottery-item.active {
   background: rgba(74, 122, 74, 0.12);
   border-color: #4a7a4a;
 }
 
-.lottery-item.stub .item-name {
+.loot-roller .lottery-item.stub .item-name {
   font-style: italic;
   color: var(--color-text-light-7);
 }
 
-.lottery-item .item-img {
+.loot-roller .lottery-item .item-img {
   width: 36px;
   height: 36px;
   object-fit: cover;
@@ -238,39 +304,39 @@
   border: 1px solid var(--color-border-light);
 }
 
-.item-info {
+.loot-roller .item-info {
   display: flex;
   flex-direction: column;
   gap: 2px;
 }
 
-.item-name {
+.loot-roller .item-name {
   font-weight: bold;
   font-size: 13px;
 }
 
-.item-rarity {
+.loot-roller .item-rarity {
   font-size: 11px;
   text-transform: capitalize;
 }
 
-.item-rarity.common    { color: #c8c8c8; }
-.item-rarity.uncommon  { color: #1a7f37; }
-.item-rarity.rare      { color: #4a90d9; }
-.item-rarity.very-rare { color: #8250df; }
-.item-rarity.legendary { color: #e07820; }
+.loot-roller .item-rarity.common    { color: #c8c8c8; }
+.loot-roller .item-rarity.uncommon  { color: #1a7f37; }
+.loot-roller .item-rarity.rare      { color: #4a90d9; }
+.loot-roller .item-rarity.very-rare { color: #8250df; }
+.loot-roller .item-rarity.legendary { color: #e07820; }
 
-.item-stub-note {
+.loot-roller .item-stub-note {
   font-size: 10px;
   color: var(--color-text-light-7);
 }
 
-.item-destination {
+.loot-roller .item-destination {
   display: flex;
   gap: 6px;
 }
 
-.dest-btn {
+.loot-roller .dest-btn {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -285,13 +351,13 @@
   transition: color 0.15s, border-color 0.15s;
 }
 
-.dest-btn:hover { border-color: var(--color-border-highlight); }
+.loot-roller .dest-btn:hover { border-color: var(--color-border-highlight); }
 
-.dest-lottery.selected { color: #4a7a4a; border-color: #4a7a4a; background: rgba(74,122,74,0.08); }
-.dest-stash.selected   { color: #0550ae; border-color: #0550ae; background: rgba(5,80,174,0.08); }
-.dest-discard.selected { color: #cf222e; border-color: #cf222e; background: rgba(207,34,46,0.08); }
+.loot-roller .dest-lottery.selected { color: #4a7a4a; border-color: #4a7a4a; background: rgba(74,122,74,0.08); }
+.loot-roller .dest-stash.selected   { color: #0550ae; border-color: #0550ae; background: rgba(5,80,174,0.08); }
+.loot-roller .dest-discard.selected { color: #cf222e; border-color: #cf222e; background: rgba(207,34,46,0.08); }
 
-.btn-start-lottery {
+.loot-roller .btn-start-lottery {
   padding: 8px 20px;
   background: #4a7a4a;
   color: #fff;
@@ -305,12 +371,12 @@
   gap: 8px;
 }
 
-.btn-start-lottery:hover {
+.loot-roller .btn-start-lottery:hover {
   filter: brightness(1.1);
 }
 
 /* Stash read-only indicator (in Lottery Setup) */
-.stash-info {
+.loot-roller .stash-info {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -340,7 +406,7 @@
   letter-spacing: 0.05em;
 }
 
-.player-statuses h4 {
+.loot-roller .player-statuses h4 {
   margin: 0 0 6px;
   font-size: 11px;
   text-transform: uppercase;
@@ -348,7 +414,7 @@
   color: var(--color-text-light-7);
 }
 
-.player-status {
+.loot-roller .player-status {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -359,18 +425,18 @@
   font-size: 12px;
 }
 
-.player-status-waiting { opacity: 0.7; }
-.player-status-rolled  { background: rgba(74,122,74,0.1); border-color: #4a7a4a; }
-.player-status-passed  { color: var(--color-text-light-7); }
+.loot-roller .player-status-waiting { opacity: 0.7; }
+.loot-roller .player-status-rolled  { background: rgba(74,122,74,0.1); border-color: #4a7a4a; }
+.loot-roller .player-status-passed  { color: var(--color-text-light-7); }
 
-.player-name { font-weight: bold; flex: 1; }
+.loot-roller .player-name { font-weight: bold; flex: 1; }
 
-.upcoming-items {
+.loot-roller .upcoming-items {
   border-top: 1px solid var(--color-border-light);
   padding-top: 8px;
 }
 
-.upcoming-items h4 {
+.loot-roller .upcoming-items h4 {
   margin: 0 0 6px;
   font-size: 11px;
   text-transform: uppercase;
@@ -378,7 +444,7 @@
   color: var(--color-text-light-7);
 }
 
-.upcoming-item {
+.loot-roller .upcoming-item {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -387,7 +453,7 @@
   color: var(--color-text-light-7);
 }
 
-.upcoming-item img {
+.loot-roller .upcoming-item img {
   width: 24px;
   height: 24px;
   border-radius: 3px;
@@ -396,7 +462,7 @@
 }
 
 /* Player description toggle */
-.btn-description-toggle {
+.loot-roller .btn-description-toggle {
   display: flex;
   align-items: center;
   gap: 5px;
@@ -408,9 +474,9 @@
   padding: 0;
   margin-top: 3px;
 }
-.btn-description-toggle:hover { color: var(--color-text-primary); }
+.loot-roller .btn-description-toggle:hover { color: var(--color-text-primary); }
 
-.item-description-panel {
+.loot-roller .item-description-panel {
   padding: 8px 10px;
   font-size: 12px;
   color: var(--color-text-primary);
@@ -420,7 +486,7 @@
   line-height: 1.5;
 }
 
-.btn-force-resolve {
+.loot-roller .btn-force-resolve {
   width: 100%;
   padding: 8px;
   background: #9a2626;
@@ -436,7 +502,7 @@
   gap: 8px;
 }
 
-.btn-force-resolve:hover { filter: brightness(1.15); }
+.loot-roller .btn-force-resolve:hover { filter: brightness(1.15); }
 
 /* ── Player Popup ────────────────────────────────────────── */
 
@@ -448,7 +514,7 @@
   align-items: stretch;
 }
 
-.tiebreaker-banner {
+.loot-roller .tiebreaker-banner {
   background: #ffc107;
   color: #333;
   font-weight: bold;
@@ -464,7 +530,7 @@
   letter-spacing: 0.05em;
 }
 
-.item-card {
+.loot-roller .item-card {
   display: flex;
   gap: 12px;
   align-items: center;
@@ -474,7 +540,7 @@
   background: rgba(0,0,0,0.03);
 }
 
-.item-card .item-img {
+.loot-roller .item-card .item-img {
   width: 64px;
   height: 64px;
   object-fit: cover;
@@ -482,31 +548,31 @@
   border: 2px solid var(--color-border-light);
 }
 
-.item-card .item-details {
+.loot-roller .item-card .item-details {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.item-card .item-name {
+.loot-roller .item-card .item-name {
   font-size: 16px;
   font-weight: bold;
   margin: 0;
 }
 
-.item-card .item-progress {
+.loot-roller .item-card .item-progress {
   font-size: 11px;
   color: var(--color-text-light-7);
 }
 
-.action-buttons {
+.loot-roller .action-buttons {
   display: flex;
   gap: 10px;
 }
 
-.btn-roll,
-.btn-pass {
+.loot-roller .btn-roll,
+.loot-roller .btn-pass {
   flex: 1;
   padding: 12px 8px;
   border: none;
@@ -521,31 +587,31 @@
   transition: filter 0.15s;
 }
 
-.btn-roll {
+.loot-roller .btn-roll {
   background: #4a7a4a;
   color: #fff;
 }
 
-.btn-pass {
+.loot-roller .btn-pass {
   background: var(--color-border-light);
   color: var(--color-text-primary);
 }
 
-.btn-roll:hover { filter: brightness(1.1); }
-.btn-pass:hover { filter: brightness(0.9); }
+.loot-roller .btn-roll:hover { filter: brightness(1.1); }
+.loot-roller .btn-pass:hover { filter: brightness(0.9); }
 
-.roll-result {
+.loot-roller .roll-result {
   text-align: center;
   font-size: 20px;
   padding: 12px;
 }
 
-.roll-result strong {
+.loot-roller .roll-result strong {
   font-size: 28px;
   color: #4a7a4a;
 }
 
-.countdown {
+.loot-roller .countdown {
   text-align: center;
   font-size: 12px;
   color: var(--color-text-light-7);
@@ -583,11 +649,11 @@
   padding: 2px 0;
 }
 
-.winner-item { font-weight: bold; }
-.winner-arrow { color: var(--color-text-light-7); }
-.winner-name  { color: #4a7a4a; }
+.loot-roller-chat .winner-item { font-weight: bold; }
+.loot-roller-chat .winner-arrow { color: var(--color-text-light-7); }
+.loot-roller-chat .winner-name  { color: #4a7a4a; }
 
-.dist-mode {
+.loot-roller-chat .dist-mode {
   font-size: 11px;
   color: var(--color-text-light-7);
 }
@@ -623,7 +689,7 @@
   font-family: var(--font-primary);
 }
 
-.hub-system-badge {
+.loot-hub-content .hub-system-badge {
   font-size: 12px;
   color: var(--color-text-light-7);
   text-transform: uppercase;
@@ -634,13 +700,13 @@
   margin: 0;
 }
 
-.hub-buttons {
+.loot-hub-content .hub-buttons {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.hub-btn {
+.loot-hub-content .hub-btn {
   display: flex;
   align-items: center;
   padding: 14px 16px;
@@ -655,24 +721,24 @@
   box-sizing: border-box;
 }
 
-.hub-btn:hover:not(:disabled) {
+.loot-hub-content .hub-btn:hover:not(:disabled) {
   background: rgba(0, 0, 0, 0.05);
   border-color: var(--color-border-highlight);
 }
 
-.hub-btn:disabled {
+.loot-hub-content .hub-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 
-.hub-btn-icon {
+.loot-hub-content .hub-btn-icon {
   flex: 0 0 40px;
   font-size: 24px;
   text-align: center;
   color: var(--color-text-light-7);
 }
 
-.hub-btn-title {
+.loot-hub-content .hub-btn-title {
   flex: 0 0 160px;
   padding-right: 16px;
   font-weight: bold;
@@ -680,7 +746,7 @@
   white-space: nowrap;
 }
 
-.hub-btn-desc {
+.loot-hub-content .hub-btn-desc {
   flex: 1;
   font-size: 13px;
   color: var(--color-text-light-7);
@@ -707,13 +773,13 @@
   gap: 10px;
 }
 
-.filter-group {
+.loot-roller .filter-group {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.filter-label {
+.loot-roller .filter-label {
   font-size: 11px;
   font-weight: bold;
   text-transform: uppercase;
@@ -721,19 +787,19 @@
   color: var(--color-text-light-7);
 }
 
-.hint-inline {
+.loot-roller .hint-inline {
   font-weight: normal;
   font-size: 10px;
   margin-left: 4px;
 }
 
-.filter-buttons {
+.loot-roller .filter-buttons {
   display: flex;
   flex-wrap: wrap;
   gap: 4px;
 }
 
-.filter-btn {
+.loot-roller .filter-btn {
   padding: 3px 10px;
   border-radius: 3px;
   border: 1px solid var(--color-border-light);
@@ -744,7 +810,7 @@
   transition: color 0.15s, border-color 0.15s, background 0.15s;
 }
 
-.filter-btn.selected {
+.loot-roller .filter-btn.selected {
   color: var(--color-text-primary);
   border-color: var(--color-border-highlight);
   background: rgba(0, 0, 0, 0.06);
@@ -752,23 +818,28 @@
 }
 
 /* Rarity-coloured buttons when selected */
-.rarity-btn.common.selected    { color: #e0e0e0; border-color: #e0e0e0; background: rgba(224,224,224,0.12); }
-.rarity-btn.uncommon.selected  { color: #1a7f37; border-color: #1a7f37; background: rgba(26,127,55,0.12); }
-.rarity-btn.rare.selected      { color: #4a90d9; border-color: #4a90d9; background: rgba(74,144,217,0.12); }
-.rarity-btn.very-rare.selected { color: #8250df; border-color: #8250df; background: rgba(130,80,223,0.12); }
-.rarity-btn.legendary.selected { color: #e07820; border-color: #e07820; background: rgba(224,120,32,0.12); }
-.rarity-btn.unique.selected    { color: #6f42c1; border-color: #6f42c1; background: rgba(111,66,193,0.12); }
+.loot-roller .rarity-btn.common.selected    { color: #e0e0e0; border-color: #e0e0e0; background: rgba(224,224,224,0.12); }
+.loot-roller .rarity-btn.uncommon.selected  { color: #1a7f37; border-color: #1a7f37; background: rgba(26,127,55,0.12); }
+.loot-roller .rarity-btn.rare.selected      { color: #4a90d9; border-color: #4a90d9; background: rgba(74,144,217,0.12); }
+.loot-roller .rarity-btn.very-rare.selected { color: #8250df; border-color: #8250df; background: rgba(130,80,223,0.12); }
+.loot-roller .rarity-btn.legendary.selected { color: #e07820; border-color: #e07820; background: rgba(224,120,32,0.12); }
+.loot-roller .rarity-btn.unique.selected    { color: #6f42c1; border-color: #6f42c1; background: rgba(111,66,193,0.12); }
 
-/* Item type buttons when selected — match the "Common" rarity button scheme */
-.type-btn.selected { color: #e0e0e0; border-color: #e0e0e0; background: rgba(224,224,224,0.12); font-weight: bold; }
+/* Item type buttons when selected — theme-neutral so they read in light & dark */
+.loot-roller .type-btn.selected {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-highlight);
+  background: rgba(127, 127, 127, 0.22);
+  font-weight: bold;
+}
 
 /* Party level input (PF2e, replaces rarity buttons in quest/shop generators) */
-.party-level-input {
+.loot-roller .party-level-input {
   display: flex;
   align-items: center;
 }
 
-.quest-party-level {
+.loot-roller .quest-party-level {
   width: 64px;
   text-align: center;
   padding: 4px 8px;
@@ -780,13 +851,145 @@
   color: var(--color-text-primary);
 }
 
-.quest-party-level:focus {
+.loot-roller .quest-party-level:focus {
   outline: none;
   border-color: var(--color-border-highlight);
 }
 
+/* Party-level dropdown (PF2e Quest Rewards) */
+.loot-roller .filter-select-field {
+  width: 100px;
+  padding: 4px 8px;
+  font-size: 13px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  background: var(--input-background-color, var(--color-cool-5, #20232b));
+  color: var(--input-text-color, var(--color-text-primary));
+}
+
+.loot-roller .filter-select-field:focus {
+  outline: none;
+  border-color: var(--color-border-highlight);
+}
+
+/* Theme-aware option list — prevents white-on-white in dark mode for all
+   loot-roller dropdowns (quest filter, treasure-hoard form, shop config). */
+.loot-roller .filter-select-field option,
+.loot-roller-generate .form-group select option,
+.shop-config select option {
+  background: var(--input-background-color, var(--color-cool-5, #20232b));
+  color: var(--input-text-color, var(--color-text-primary));
+}
+
+.loot-roller-generate .form-group select,
+.shop-config select {
+  background: var(--input-background-color, var(--color-cool-5, #20232b));
+  color: var(--input-text-color, var(--color-text-primary));
+  border: 1px solid var(--color-border-light);
+  border-radius: 4px;
+  padding: 4px 8px;
+}
+
+/* Low/High item-level dual-handle slider (PF2e Shop Generator) */
+.loot-roller .level-range-slider {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 2px 4px;
+}
+
+.loot-roller .level-range-readout {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: bold;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-light-7);
+}
+
+.loot-roller .level-range-readout strong {
+  color: var(--color-text-primary);
+  margin-left: 4px;
+}
+
+.loot-roller .level-range-track {
+  position: relative;
+  height: 22px;
+}
+
+/* base rail */
+.loot-roller .level-range-track::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-border-light, rgba(127, 127, 127, 0.4));
+}
+
+/* selected portion between the two thumbs */
+.loot-roller .level-range-fill {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 4px;
+  border-radius: 2px;
+  background: #4a7a4a;
+}
+
+/* both range inputs overlap the same track; only their thumbs catch pointer events */
+.loot-roller .level-range-track input[type=range] {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  background: transparent;
+  -webkit-appearance: none;
+  appearance: none;
+  pointer-events: none;
+}
+
+.loot-roller .level-range-track input[type=range]::-webkit-slider-runnable-track {
+  background: transparent;
+  border: none;
+}
+
+.loot-roller .level-range-track input[type=range]::-moz-range-track {
+  background: transparent;
+  border: none;
+}
+
+.loot-roller .level-range-track input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  pointer-events: all;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4a7a4a;
+  border: 2px solid #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+.loot-roller .level-range-track input[type=range]::-moz-range-thumb {
+  pointer-events: all;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #4a7a4a;
+  border: 2px solid #fff;
+  cursor: pointer;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
 /* Item level badge (PF2e: shown instead of rarity) */
-.item-level {
+.loot-roller .item-level {
   font-size: 11px;
   color: #5b9bd5;
   font-weight: bold;
@@ -794,43 +997,43 @@
 
 /* ── Quest item card ─────────────────────────────────────── */
 
-.current-item-area {
+.loot-roller .current-item-area {
   min-height: 64px;
 }
 
-.reward-list-drop-zone {
+.loot-roller .reward-list-drop-zone {
   border: 2px dashed transparent;
   border-radius: 6px;
   transition: border-color 0.2s, background 0.2s;
 }
 
-.reward-list-drop-zone.drag-over {
+.loot-roller .reward-list-drop-zone.drag-over {
   border-color: var(--color-border-highlight);
   background: rgba(0, 0, 0, 0.03);
 }
 
-.reward-list-section .lottery-item {
+.loot-roller .reward-list-section .lottery-item {
   grid-template-columns: 36px 1fr auto auto;
 }
 
 /* Quest Generator reward list — item img button same size as the grid cell */
-.reward-list-section .item-img-btn {
+.loot-roller .reward-list-section .item-img-btn {
   width: 36px;
   height: 36px;
 }
 
-.item-qty-control {
+.loot-roller .item-qty-control {
   display: flex;
   align-items: center;
   gap: 3px;
 }
 
-.item-qty-x {
+.loot-roller .item-qty-x {
   font-size: 11px;
   color: var(--color-text-light-7);
 }
 
-.item-qty-input {
+.loot-roller .item-qty-input {
   width: 44px;
   text-align: center;
   padding: 2px 4px;
@@ -841,15 +1044,15 @@
   color: var(--color-text-primary);
 }
 
-.item-qty-input:focus {
+.loot-roller .item-qty-input:focus {
   outline: none;
   border-color: var(--color-border-highlight);
 }
 
-.item-searching,
-.item-no-results,
-.item-roll-prompt,
-.reward-drop-hint {
+.loot-roller .item-searching,
+.loot-roller .item-no-results,
+.loot-roller .item-roll-prompt,
+.loot-roller .reward-drop-hint {
   text-align: center;
   padding: 16px;
   color: var(--color-text-light-7);
@@ -862,7 +1065,7 @@
   border-radius: 6px;
 }
 
-.quest-item-card {
+.loot-roller .quest-item-card {
   display: flex;
   gap: 12px;
   align-items: center;
@@ -872,12 +1075,12 @@
   background: rgba(0, 0, 0, 0.03);
 }
 
-.quest-item-card .item-img-btn {
+.loot-roller .quest-item-card .item-img-btn {
   width: 52px;
   height: 52px;
 }
 
-.quest-item-card .item-img {
+.loot-roller .quest-item-card .item-img {
   width: 52px;
   height: 52px;
   object-fit: cover;
@@ -886,22 +1089,22 @@
   flex-shrink: 0;
 }
 
-.quest-item-card .item-details {
+.loot-roller .quest-item-card .item-details {
   flex: 1;
 }
 
-.quest-item-card .item-name {
+.loot-roller .quest-item-card .item-name {
   font-weight: bold;
   font-size: 14px;
 }
 
-.quest-item-actions {
+.loot-roller .quest-item-actions {
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.btn-add-item {
+.loot-roller .btn-add-item {
   padding: 5px 10px;
   background: #4a7a4a;
   color: #fff;
@@ -915,7 +1118,7 @@
   white-space: nowrap;
 }
 
-.btn-reroll {
+.loot-roller .btn-reroll {
   padding: 5px 10px;
   background: transparent;
   color: var(--color-text-primary);
@@ -928,7 +1131,7 @@
   gap: 5px;
 }
 
-.btn-view-current {
+.loot-roller .btn-view-current {
   padding: 5px 10px;
   background: transparent;
   color: var(--color-text-light-7);
@@ -941,13 +1144,13 @@
   gap: 5px;
 }
 
-.btn-add-item:hover    { filter: brightness(1.1); }
-.btn-view-current:hover { color: var(--color-text-primary); border-color: var(--color-border-highlight); }
-.btn-reroll:hover       { border-color: var(--color-border-highlight); }
+.loot-roller .btn-add-item:hover    { filter: brightness(1.1); }
+.loot-roller .btn-view-current:hover { color: var(--color-text-primary); border-color: var(--color-border-highlight); }
+.loot-roller .btn-reroll:hover       { border-color: var(--color-border-highlight); }
 
 /* ── Shared item list (quest + shop) ─────────────────────── */
 
-.section-label {
+.loot-roller .section-label {
   margin: 0 0 6px;
   font-size: 12px;
   text-transform: uppercase;
@@ -958,11 +1161,11 @@
   gap: 6px;
 }
 
-.item-count {
+.loot-roller .item-count {
   font-weight: normal;
 }
 
-.btn-icon-remove {
+.loot-roller .btn-icon-remove {
   width: 24px;
   height: 24px;
   display: flex;
@@ -976,15 +1179,15 @@
   flex-shrink: 0;
 }
 
-.btn-icon-remove:hover { color: var(--color-text-error); }
+.loot-roller .btn-icon-remove:hover { color: var(--color-text-error); }
 
-.reward-actions {
+.loot-roller .reward-actions {
   display: flex;
   gap: 8px;
   margin-top: 8px;
 }
 
-.btn-distribute {
+.loot-roller .btn-distribute {
   flex: 1;
   padding: 8px 12px;
   background: #4a7a4a;
@@ -999,9 +1202,9 @@
   gap: 6px;
 }
 
-.btn-distribute:hover { filter: brightness(1.1); }
+.loot-roller .btn-distribute:hover { filter: brightness(1.1); }
 
-.btn-save-list {
+.loot-roller .btn-save-list {
   padding: 8px 12px;
   background: transparent;
   color: var(--color-text-primary);
@@ -1014,7 +1217,7 @@
   gap: 6px;
 }
 
-.btn-save-list:hover { border-color: var(--color-border-highlight); }
+.loot-roller .btn-save-list:hover { border-color: var(--color-border-highlight); }
 
 /* ── Shop Generator ──────────────────────────────────────── */
 
@@ -1052,14 +1255,14 @@
   color: var(--color-text-primary);
 }
 
-.comp-hint {
+.compendium-settings-content .comp-hint {
   margin: 0;
   color: var(--color-text-light-7);
   font-size: 12px;
   line-height: 1.5;
 }
 
-.pack-list {
+.compendium-settings-content .pack-list {
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -1067,7 +1270,7 @@
   overflow-y: auto;
 }
 
-.pack-row {
+.compendium-settings-content .pack-row {
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1078,18 +1281,18 @@
   transition: background 0.12s;
 }
 
-.pack-row:hover {
+.compendium-settings-content .pack-row:hover {
   background: rgba(0, 0, 0, 0.04);
 }
 
-.pack-row input[type=checkbox] {
+.compendium-settings-content .pack-row input[type=checkbox] {
   flex-shrink: 0;
   width: 15px;
   height: 15px;
   cursor: pointer;
 }
 
-.pack-info {
+.compendium-settings-content .pack-info {
   flex: 1;
   min-width: 0;
   display: flex;
@@ -1097,7 +1300,7 @@
   gap: 1px;
 }
 
-.pack-title {
+.compendium-settings-content .pack-title {
   font-weight: bold;
   font-size: 13px;
   white-space: nowrap;
@@ -1105,12 +1308,12 @@
   text-overflow: ellipsis;
 }
 
-.pack-meta {
+.compendium-settings-content .pack-meta {
   font-size: 11px;
   color: var(--color-text-light-7);
 }
 
-.default-badge {
+.compendium-settings-content .default-badge {
   font-size: 10px;
   font-weight: bold;
   text-transform: uppercase;
@@ -1122,7 +1325,7 @@
   flex-shrink: 0;
 }
 
-.comp-actions {
+.compendium-settings-content .comp-actions {
   display: flex;
   justify-content: flex-end;
   gap: 8px;
@@ -1130,7 +1333,7 @@
   padding-top: 12px;
 }
 
-.comp-actions button {
+.compendium-settings-content .comp-actions button {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -1142,18 +1345,18 @@
   background: transparent;
 }
 
-.comp-actions button:hover {
+.compendium-settings-content .comp-actions button:hover {
   border-color: var(--color-border-highlight);
 }
 
-.comp-actions .btn-save-primary {
+.compendium-settings-content .comp-actions .btn-save-primary {
   background: #4a7a4a;
   color: #fff;
   border-color: #4a7a4a;
   font-weight: bold;
 }
 
-.comp-actions .btn-save-primary:hover {
+.compendium-settings-content .comp-actions .btn-save-primary:hover {
   filter: brightness(1.1);
 }
 
@@ -1169,7 +1372,7 @@
   flex-direction: column;
 }
 
-.saved-lists-empty {
+.saved-lists-content .saved-lists-empty {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -1180,23 +1383,23 @@
   font-size: 13px;
 }
 
-.saved-lists-empty i {
+.saved-lists-content .saved-lists-empty i {
   font-size: 28px;
   opacity: 0.4;
 }
 
-.saved-lists-empty p {
+.saved-lists-content .saved-lists-empty p {
   margin: 0;
 }
 
-.saved-list-items {
+.saved-lists-content .saved-list-items {
   display: flex;
   flex-direction: column;
   gap: 6px;
   overflow-y: auto;
 }
 
-.saved-list-row {
+.saved-lists-content .saved-list-row {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -1206,16 +1409,16 @@
   transition: background 0.15s;
 }
 
-.saved-list-row:hover {
+.saved-lists-content .saved-list-row:hover {
   background: rgba(0, 0, 0, 0.03);
 }
 
-.saved-list-info {
+.saved-lists-content .saved-list-info {
   flex: 1;
   min-width: 0;
 }
 
-.saved-list-name {
+.saved-lists-content .saved-list-name {
   font-weight: bold;
   font-size: 13px;
   display: block;
@@ -1224,7 +1427,7 @@
   text-overflow: ellipsis;
 }
 
-.saved-list-meta {
+.saved-lists-content .saved-list-meta {
   display: flex;
   gap: 10px;
   margin-top: 2px;
@@ -1232,14 +1435,14 @@
   color: var(--color-text-light-7);
 }
 
-.saved-list-actions {
+.saved-lists-content .saved-list-actions {
   display: flex;
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
 }
 
-.btn-award-list {
+.loot-roller .btn-award-list {
   padding: 4px 10px;
   background: #4a7a4a;
   color: #fff;
@@ -1252,9 +1455,9 @@
   gap: 5px;
 }
 
-.btn-award-list:hover { filter: brightness(1.1); }
+.loot-roller .btn-award-list:hover { filter: brightness(1.1); }
 
-.btn-icon {
+.loot-roller .btn-icon {
   width: 28px;
   height: 28px;
   display: flex;
@@ -1268,9 +1471,9 @@
   transition: color 0.15s, border-color 0.15s;
 }
 
-.btn-icon:hover { color: var(--color-text-primary); border-color: var(--color-border-highlight); }
+.loot-roller .btn-icon:hover { color: var(--color-text-primary); border-color: var(--color-border-highlight); }
 
-.btn-icon-danger:hover {
+.loot-roller .btn-icon-danger:hover {
   color: var(--color-text-error, #cf222e);
   border-color: var(--color-text-error, #cf222e);
 }

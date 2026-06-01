@@ -28,6 +28,31 @@
               value="{{this.current}}" min="{{this.min}}" max="{{this.max}}" />
           </div>
         {{/if}}
+        {{#if (lootrollerEq this.type "select")}}
+          <select class="filter-select-field" data-filter-key="{{this.key}}">
+            {{#each this.options}}
+              <option value="{{this.value}}" {{#if this.selected}}selected{{/if}}>{{this.label}}</option>
+            {{/each}}
+          </select>
+        {{/if}}
+        {{#if (lootrollerEq this.type "level-range")}}
+          <div class="level-range-slider" data-filter-key="{{this.key}}"
+            data-min="{{this.min}}" data-max="{{this.max}}">
+            <div class="level-range-readout">
+              <span class="level-range-label">{{localize "LOOTROLLER.levelRange.low"}}
+                <strong class="level-range-value-low">{{this.low}}</strong></span>
+              <span class="level-range-label">{{localize "LOOTROLLER.levelRange.high"}}
+                <strong class="level-range-value-high">{{this.high}}</strong></span>
+            </div>
+            <div class="level-range-track">
+              <div class="level-range-fill"></div>
+              <input type="range" class="level-range-low" data-filter-key="{{this.key}}"
+                min="{{this.min}}" max="{{this.max}}" step="1" value="{{this.low}}" />
+              <input type="range" class="level-range-high" data-filter-key="{{this.key}}"
+                min="{{this.min}}" max="{{this.max}}" step="1" value="{{this.high}}" />
+            </div>
+          </div>
+        {{/if}}
       </div>
     {{/each}}
 

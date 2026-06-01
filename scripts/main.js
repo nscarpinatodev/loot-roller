@@ -26,6 +26,7 @@ import { CompendiumSettingsApp }  from "./apps/compendium-settings-app.js";
 // System adapters — only one will self-register based on game.system.id
 import "./systems/dnd5e-adapter.js";
 import "./systems/pf2e-adapter.js";
+import "./systems/starfinder2e-adapter.js";
 import "./systems/fallout-adapter.js";
 
 const MODULE_ID = "loot-roller";
@@ -108,21 +109,11 @@ Hooks.once("init", () => {
   Handlebars.registerHelper("lootrollerEq", (a, b) => a === b);
   Handlebars.registerHelper("lootrollerIncludes", (arr, val) => Array.isArray(arr) && arr.includes(val));
   Handlebars.registerHelper("lootrollerRarityClass", (rarity) =>
-    (rarity ?? "")
+    String(rarity ?? "")
       .replace(/([A-Z])/g, (c) => `-${c.toLowerCase()}`) // camelCase → kebab
       .replace(/\s+/g, "-")
       .toLowerCase()
   );
-  // Returns true when the active system uses party-level filtering instead of rarity buttons.
-  // Checked at render time so it always reflects the current system.
-  Handlebars.registerHelper("lootrollerUsesPartyLevel", () => {
-    if (typeof game === "undefined") return false;
-    // Primary: ask the adapter (extensible for future systems)
-    const adapter = LootRoller.getAdapter?.();
-    if (adapter?.getItemLevelRange) return true;
-    // Fallback: hardcoded system check so PF2e works even if the adapter JS is cached
-    return game.system?.id === "pf2e";
-  });
 });
 
 // ── ready ─────────────────────────────────────────────────────────────────────
@@ -159,112 +150,7 @@ Hooks.once("ready", () => {
   }
 
   console.log(`Loot Roller | Ready. Adapter: ${adapter?.systemName ?? "none"}`);
-
-  // ── PF2e filter injection (cache-bypass) ────────────────────────────────
-  // Runs from main.js (always reloaded when module version changes) so the
-  // correct filter UI and roll behaviour work even if app JS is still cached.
-  _registerPf2eFilterHooks();
 });
-
-/**
- * Patch QuestGeneratorApp and ShopGeneratorApp prototypes so the PF2e party-level
- * filter is injected whenever the app renders — regardless of whether the app JS
- * files are cached old versions.
- *
- * Prototype patching works even on cached classes because main.js (always reloaded
- * fresh when the module version changes) holds the authoritative import of these classes.
- */
-function _registerPf2eFilterHooks() {
-  if (game.system?.id !== "pf2e") return;
-
-  const _patchOnRender = (AppClass) => {
-    if (!AppClass?.prototype) return;
-    const _orig = AppClass.prototype._onRender;
-    AppClass.prototype._onRender = function (context, options) {
-      _orig?.call(this, context, options);
-      _pf2eInjectFilter(this);
-    };
-  };
-
-  _patchOnRender(QuestGeneratorApp);
-  _patchOnRender(ShopGeneratorApp);
-}
-
-/**
- * Inject the PF2e party-level filter into a Quest or Shop generator app instance.
- * Replaces the rarity section if the template rendered the old rarity buttons,
- * and patches _rollItem / _generate to use partyLevel for findItems.
- */
-function _pf2eInjectFilter(app) {
-  const el = app.element;
-  if (!el) return;
-
-  const adapter = LootRoller.getAdapter?.();
-  if (!adapter) return;
-
-  // Initialise party level on the instance
-  if (app._partyLevel == null) {
-    app._partyLevel = adapter.getItemLevelRange?.()?.default ?? 5;
-  }
-
-  // If the fresh template already rendered a number field, just sync the value and done
-  const existingInput = el.querySelector(".filter-number-field[data-filter-key='partyLevel']");
-  if (existingInput) {
-    existingInput.value = app._partyLevel;
-  } else {
-    // Old cached template: find the first filter group and replace it with the party level input
-    const filtersContainer = el.querySelector(".generator-filters, .shop-config");
-    const firstGroup = filtersContainer?.querySelector(".filter-group");
-    if (firstGroup) {
-      const label = game.i18n.localize("LOOTROLLER.pf2e.field.partyLevel");
-      firstGroup.innerHTML = `
-        <label class="filter-label">${label}</label>
-        <div class="party-level-input">
-          <input type="number" class="filter-number-field"
-            data-filter-key="partyLevel"
-            value="${app._partyLevel}" min="1" max="20" />
-        </div>`;
-      firstGroup.querySelector(".filter-number-field")?.addEventListener("change", (e) => {
-        app._partyLevel = Math.max(1, Math.min(20, parseInt(e.target.value) || 5));
-      });
-    }
-  }
-
-  // Patch _rollItem and _generate once per instance to use partyLevel
-  if (app._pf2ePatched) return;
-  app._pf2ePatched = true;
-
-  if (typeof app._rollItem === "function") {
-    const _orig = app._rollItem.bind(app);
-    app._rollItem = async function () {
-      if (app._partyLevel == null) return _orig();
-      app._searching = true; app._noResults = false; app._current = null; app._rolled = true;
-      app.render(false);
-      try {
-        const types        = app._types?.length ? app._types : null;
-        const excludeNames = new Set((app._items ?? []).map((i) => i.name).filter(Boolean));
-        const results      = await adapter.findItems({ partyLevel: app._partyLevel, types, limit: 1, excludeNames });
-        app._current   = results[0] ?? null;
-        app._noResults = !results.length;
-      } catch (err) { console.error("LootRoller |", err); app._noResults = true; }
-      finally { app._searching = false; app.render(false); }
-    };
-  }
-
-  if (typeof app._generate === "function") {
-    const _orig = app._generate.bind(app);
-    app._generate = async function () {
-      if (app._partyLevel == null) return _orig();
-      app._generating = true; app._items = [];
-      app.render(false);
-      try {
-        const types = app._types?.length ? app._types : null;
-        app._items  = await adapter.findItems({ partyLevel: app._partyLevel, types, limit: app._itemCount ?? 10 });
-      } catch (err) { console.error("LootRoller |", err); }
-      finally { app._generating = false; app.render(false); }
-    };
-  }
-}
 
 // ── GM Toolbar button ─────────────────────────────────────────────────────────
 //

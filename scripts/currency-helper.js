@@ -9,6 +9,8 @@
  * passed in via the adapter.
  */
 
+import { isStarfinder2eSystem } from "./systems/starfinder2e-adapter.js";
+
 /**
  * Standard 5e/PF2e conversion: 1 pp = 10 gp = 100 sp = 1000 cp (5e adds ep = 5 sp)
  */
@@ -92,14 +94,12 @@ export async function addCurrencyToActor(actor, coins) {
   }
 
   if (systemId === "pf2e") {
-    // PF2e stores currency directly in system.currency (same key names as dnd5e).
-    const current = actor.system?.currency ?? {};
-    const updates = {};
-    for (const [denom, amount] of Object.entries(coins)) {
-      if (amount) updates[denom] = (current[denom] ?? 0) + amount;
-    }
-    if (Object.keys(updates).length) {
-      await actor.update({ "system.currency": updates });
+    // PF2e has no system.currency field — coins are physical items managed via
+    // the inventory API (inventory.coins keys: pp/gp/sp/cp).
+    if (actor.inventory?.addCoins) {
+      await actor.inventory.addCoins({
+        pp: coins.pp ?? 0, gp: coins.gp ?? 0, sp: coins.sp ?? 0, cp: coins.cp ?? 0,
+      });
     }
     return;
   }
@@ -109,6 +109,18 @@ export async function addCurrencyToActor(actor, coins) {
     const current = actor.system?.currency ?? {};
     const caps    = (current.caps ?? 0) + (coins.caps ?? 0);
     await actor.update({ "system.currency": { ...current, caps } });
+    return;
+  }
+
+  if (isStarfinder2eSystem()) {
+    // SF2e is PF2e-based: currency is physical items managed via inventory.addCoins.
+    // The module's coin object uses the same keys as inventory.coins: { credits, upb }.
+    if (actor.inventory?.addCoins) {
+      await actor.inventory.addCoins({
+        credits: coins.credits ?? 0,
+        upb:     coins.upb ?? 0,
+      });
+    }
     return;
   }
 
@@ -134,6 +146,13 @@ export function formatCoins(coins) {
   // Fallout: caps only
   if ("caps" in coins) {
     return coins.caps > 0 ? `${coins.caps} caps` : "0 caps";
+  }
+  // Starfinder 2e: Credits + UPBs
+  if ("credits" in coins || "upb" in coins) {
+    const parts = [];
+    if (coins.credits > 0) parts.push(`${coins.credits.toLocaleString()} Credits`);
+    if (coins.upb     > 0) parts.push(`${coins.upb.toLocaleString()} UPBs`);
+    return parts.join(", ") || "0 Credits";
   }
   const order = ["pp", "gp", "ep", "sp", "cp"];
   return order

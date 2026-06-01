@@ -2,7 +2,11 @@
   "LOOTROLLER": {
     "app": {
       "title": "Loot Roller",
-      "generateButton": "Generate Loot"
+      "generateButton": "Generate Loot",
+      "rollAgainButton": "Roll Again",
+      "resultsTitle": "Generated Loot",
+      "clearResults": "Clear All",
+      "proceedButton": "Proceed to Lottery"
     },
     "toolbar": {
       "openRoller": "Open Loot Roller"
@@ -65,6 +69,16 @@
           "name": "PF2e: Include Rare Items",
           "hint": "Allow rare items to appear in generated loot."
         }
+      },
+      "sf2e": {
+        "includeUncommon": {
+          "name": "SF2e: Include Uncommon Items",
+          "hint": "Allow uncommon items to appear in generated loot."
+        },
+        "includeRare": {
+          "name": "SF2e: Include Rare Items",
+          "hint": "Allow rare items to appear in generated loot."
+        }
       }
     },
 
@@ -100,6 +114,32 @@
         "full": "Full Level Budget",
         "encounter": "Single Encounter (~1/10 level)",
         "custom": "Custom Budget"
+      }
+    },
+
+    "sf2e": {
+      "field": {
+        "partyLevel": "Party Level",
+        "partySize": "Party Size",
+        "partySizeHint": "Number of players (base 4). Adjusts the treasure budget.",
+        "lootScope": "Loot Scope",
+        "customBudget": "Custom Budget (credits)",
+        "customBudgetHint": "Total credit budget to allocate.",
+        "upbYield": "UPB Yield",
+        "upbYieldHint": "Share of the currency budget paid out as UPBs (Universal Polymer Base) instead of credits.",
+        "includeUncommon": "Include Uncommon Items",
+        "includeRare": "Include Rare Items"
+      },
+      "lootScope": {
+        "full": "Full Level Budget",
+        "encounter": "Single Encounter (~1/10 level)",
+        "custom": "Custom Budget"
+      },
+      "upbYield": {
+        "none": "None (all credits)",
+        "low": "Low (~10% UPBs)",
+        "standard": "Standard (~25% UPBs)",
+        "high": "High (~50% UPBs)"
       }
     },
 
@@ -223,7 +263,9 @@
       "itemTypes": "Item Types",
       "generate": "Generate Inventory",
       "generating": "Generating…",
+      "addMore": "Add More Items",
       "inventory": "Inventory",
+      "clearInventory": "Clear All",
       "createShop": "Create Shop Actor",
       "created": "Created \"{name}\" with {count} items.",
       "createFailed": "Failed to create shop actor. Check the console for details.",
