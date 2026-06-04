@@ -18,7 +18,7 @@ export class CompendiumSettingsApp extends HandlebarsApplicationMixin(Applicatio
   };
 
   static PARTS = {
-    content: { template: "modules/loot-roller/templates/compendium-settings.hbs" },
+    content: { template: "modules/scorpious187s-loot-roller/templates/compendium-settings.hbs" },
   };
 
   async _prepareContext(options) {
@@ -26,7 +26,7 @@ export class CompendiumSettingsApp extends HandlebarsApplicationMixin(Applicatio
     const defaultPacks = new Set(adapter?.getCompendiumPacks?.() ?? []);
 
     let setting = {};
-    try { setting = game.settings.get("loot-roller", "compendiumPacks") ?? {}; } catch {}
+    try { setting = game.settings.get("scorpious187s-loot-roller", "compendiumPacks") ?? {}; } catch {}
     const hasCustom = Object.keys(setting).length > 0;
 
     const packs = game.packs
@@ -59,7 +59,7 @@ export class CompendiumSettingsApp extends HandlebarsApplicationMixin(Applicatio
     this.element.querySelectorAll("[data-pack-id]").forEach((cb) => {
       setting[cb.dataset.packId] = cb.checked;
     });
-    await game.settings.set("loot-roller", "compendiumPacks", setting);
+    await game.settings.set("scorpious187s-loot-roller", "compendiumPacks", setting);
     CompendiumHelper.clearPool();
     LootRoller.getAdapter()?.clearPool?.();
     LootHubApp._poolWarmed = false;
@@ -68,7 +68,7 @@ export class CompendiumSettingsApp extends HandlebarsApplicationMixin(Applicatio
   }
 
   async _resetDefaults() {
-    await game.settings.set("loot-roller", "compendiumPacks", {});
+    await game.settings.set("scorpious187s-loot-roller", "compendiumPacks", {});
     CompendiumHelper.clearPool();
     LootRoller.getAdapter()?.clearPool?.();
     LootHubApp._poolWarmed = false;

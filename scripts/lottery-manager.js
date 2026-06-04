@@ -10,6 +10,7 @@
 import { emit, MSG } from "./socket.js";
 import { addCurrencyToActor, splitEqually, formatCoins } from "./currency-helper.js";
 import { LootRoller } from "./api.js";
+import { buildItemDetail } from "./item-detail.js";
 
 const STATE = Object.freeze({
   IDLE: "idle",
@@ -86,7 +87,7 @@ export class LotteryManager {
     if (!this._eligiblePlayers.has(userId)) return;
 
     this._responses.set(userId, response);
-    game.modules.get("loot-roller").lotteryGMApp?.refresh();
+    game.modules.get("scorpious187s-loot-roller").lotteryGMApp?.refresh();
 
     if (this._responses.size >= this._eligiblePlayers.size) {
       clearTimeout(this._timeoutHandle);
@@ -152,7 +153,39 @@ export class LotteryManager {
 
   // ── Private ──────────────────────────────────────────────────────────────
 
-  _processNextItem() {
+  /**
+   * Build the mystification-aware display payload for an item shared by the
+   * roll and tie-breaker broadcasts: name/img/type, the (display) description,
+   * and the full detail context for the player popup. Stats are suppressed for
+   * unidentified items; the GM client is authoritative so players can't peek.
+   * Supports dnd5e (system.identified === false) and PF2e/SF2e identification.
+   */
+  async _itemDisplayPayload(item) {
+    const isUnidentified = item.system?.identified === false
+      || item.system?.identification?.status === "unidentified";
+    const displayName = isUnidentified
+      ? (item.system?.unidentified?.name
+          || item.system?.identification?.unidentified?.name
+          || game.i18n.localize("LOOTROLLER.lottery.unidentifiedItem"))
+      : item.name;
+    const displayDesc = isUnidentified
+      ? (item.system?.unidentified?.description
+          || item.system?.identification?.unidentified?.description
+          || "")
+      : (item.system?.description?.value || "");
+
+    let itemDetail = null;
+    try {
+      itemDetail = await buildItemDetail(item, { mystified: isUnidentified });
+      itemDetail.name = displayName; // keep consistent with the card/title
+    } catch (err) {
+      console.warn("LootRoller | buildItemDetail failed for lottery item:", err);
+    }
+
+    return { itemName: displayName, itemImg: item.img, itemType: item.type, itemDescription: displayDesc, itemDetail };
+  }
+
+  async _processNextItem() {
     if (this._currentIndex >= this._queue.length) {
       this._complete();
       return;
@@ -161,39 +194,22 @@ export class LotteryManager {
     this._responses.clear();
     const item = this._queue[this._currentIndex];
 
-    // Support both dnd5e (system.identified === false) and PF2e (system.identification.status)
-    const isUnidentified = item.system?.identified === false
-      || item.system?.identification?.status === "unidentified";
-    const displayName    = isUnidentified
-      ? (item.system?.unidentified?.name
-          || item.system?.identification?.unidentified?.name
-          || game.i18n.localize("LOOTROLLER.lottery.unidentifiedItem"))
-      : item.name;
-    const displayDesc    = isUnidentified
-      ? (item.system?.unidentified?.description
-          || item.system?.identification?.unidentified?.description
-          || "")
-      : (item.system?.description?.value || "");
-
     emit(MSG.ITEM_UP_FOR_ROLL, {
       itemId:          item.id ?? item._id,
-      itemName:        displayName,
-      itemImg:         item.img,
-      itemType:        item.type,
-      itemDescription: displayDesc,
+      ...(await this._itemDisplayPayload(item)),
       round:           this._currentIndex + 1,
       total:           this._queue.length,
     });
 
-    game.modules.get("loot-roller").lotteryGMApp?.refresh();
+    game.modules.get("scorpious187s-loot-roller").lotteryGMApp?.refresh();
 
-    const timeout = game.settings.get("loot-roller", "lotteryTimeout");
+    const timeout = game.settings.get("scorpious187s-loot-roller", "lotteryTimeout");
     if (timeout > 0) {
       this._timeoutHandle = setTimeout(() => this.forceResolve(), timeout * 1000);
     }
   }
 
-  _resolveCurrentItem() {
+  async _resolveCurrentItem() {
     const item = this._queue[this._currentIndex];
     const rollers = [];
 
@@ -223,12 +239,11 @@ export class LotteryManager {
 
       emit(MSG.TIE_BREAKER, {
         itemId: item.id ?? item._id,
-        itemName: item.name,
-        itemImg: item.img,
+        ...(await this._itemDisplayPayload(item)),
         tiedPlayerIds: [...this._eligiblePlayers],
       });
 
-      const timeout = game.settings.get("loot-roller", "lotteryTimeout");
+      const timeout = game.settings.get("scorpious187s-loot-roller", "lotteryTimeout");
       if (timeout > 0) {
         this._timeoutHandle = setTimeout(() => this.forceResolve(), timeout * 1000);
       }
@@ -273,14 +288,14 @@ export class LotteryManager {
   }
 
   async _addItemToStash(item) {
-    const stashUuid = game.settings.get("loot-roller", "partyStashActor");
+    const stashUuid = game.settings.get("scorpious187s-loot-roller", "partyStashActor");
     if (!stashUuid) return;
     const stash = await fromUuid(stashUuid);
     if (stash) await this._addItemToActor(stash, item);
   }
 
   async _processStashItems() {
-    const stashUuid = game.settings.get("loot-roller", "partyStashActor");
+    const stashUuid = game.settings.get("scorpious187s-loot-roller", "partyStashActor");
     if (!stashUuid || !this._stashItems.length) return;
     const stash = await fromUuid(stashUuid);
     if (!stash) return;
@@ -293,7 +308,7 @@ export class LotteryManager {
     if (!Object.values(this._coins).some((v) => v > 0)) return;
 
     if (this._currencyMode === "stash") {
-      const stashUuid = game.settings.get("loot-roller", "partyStashActor");
+      const stashUuid = game.settings.get("scorpious187s-loot-roller", "partyStashActor");
       if (stashUuid) {
         const stash = await fromUuid(stashUuid);
         if (stash) await addCurrencyToActor(stash, this._coins);
@@ -312,7 +327,7 @@ export class LotteryManager {
     }
 
     // Remainder goes to stash if configured
-    const stashUuid = game.settings.get("loot-roller", "partyStashActor");
+    const stashUuid = game.settings.get("scorpious187s-loot-roller", "partyStashActor");
     if (stashUuid && Object.values(remainder).some((v) => v > 0)) {
       const stash = await fromUuid(stashUuid);
       if (stash) await addCurrencyToActor(stash, remainder);
@@ -341,12 +356,12 @@ export class LotteryManager {
 
   async _complete() {
     this.state = STATE.COMPLETE;
-    game.modules.get("loot-roller").lotteryGMApp?.close();
+    game.modules.get("scorpious187s-loot-roller").lotteryGMApp?.close();
     emit(MSG.LOTTERY_COMPLETE, { summary: this._summary.map((s) => ({ itemName: s.item.name, winnerName: s.winnerName })) });
 
     // Final summary chat card
     const adapter = LootRoller.getAdapter();
-    const content = await renderTemplate("modules/loot-roller/templates/chat-loot.hbs", {
+    const content = await renderTemplate("modules/scorpious187s-loot-roller/templates/chat-loot.hbs", {
       coins: this._coins,
       formattedCoins: formatCoins(this._coins),
       summary: this._summary,

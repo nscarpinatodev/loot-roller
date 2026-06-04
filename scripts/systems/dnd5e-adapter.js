@@ -9,7 +9,7 @@
 import { LootRoller } from "../api.js";
 import { CompendiumHelper } from "../compendium-helper.js";
 
-const MODULE_ID = "loot-roller";
+const MODULE_ID = "scorpious187s-loot-roller";
 
 /** True when running dnd5e 5.3.x or later. */
 const IS_DND5E_53 = () => foundry.utils.isNewerVersion(game.system.version, "5.2.99");
@@ -769,7 +769,7 @@ export class DnD5eAdapter {
   /** Return the pack IDs to search, respecting the user's compendium selection setting. */
   static getActivePacks() {
     try {
-      const setting = game.settings.get("loot-roller", "compendiumPacks");
+      const setting = game.settings.get("scorpious187s-loot-roller", "compendiumPacks");
       if (setting && Object.keys(setting).length) {
         const enabled = Object.entries(setting)
           .filter(([, on]) => on)

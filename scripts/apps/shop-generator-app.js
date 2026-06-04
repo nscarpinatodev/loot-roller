@@ -7,6 +7,8 @@
  */
 
 import { LootRoller } from "../api.js";
+import { ItemDetailApp } from "./item-detail-app.js";
+import { bindRowClicks } from "../row-click.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -19,7 +21,7 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
   };
 
   static PARTS = {
-    content: { template: "modules/loot-roller/templates/shop-generator.hbs" },
+    content: { template: "modules/scorpious187s-loot-roller/templates/shop-generator.hbs" },
   };
 
   constructor(options = {}) {
@@ -129,6 +131,22 @@ export class ShopGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2) 
         this.render(false);
       });
     });
+
+    // View an inventory item's details in the module's detail popup (GM tool → real details).
+    this.element.querySelectorAll("[data-action=view-item]").forEach((btn) => {
+      btn.addEventListener("click", async (e) => {
+        e.preventDefault();
+        const idx  = parseInt(btn.dataset.idx);
+        const item = this._items[idx];
+        if (!item) return;
+        const uuid = item._sourceUuid ?? item.uuid;
+        const doc  = uuid ? await fromUuid(uuid).catch(() => null) : null;
+        ItemDetailApp.show({ item: doc ?? item, mystified: false });
+      });
+    });
+
+    // Whole-row click opens the same detail popup as the image button.
+    bindRowClicks(this.element);
 
     this.element.querySelector("[data-action=create-shop]")
       ?.addEventListener("click", () => this._createShop());

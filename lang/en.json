@@ -11,6 +11,10 @@
     "toolbar": {
       "openRoller": "Open Loot Roller"
     },
+    "detail": {
+      "title": "Item Details",
+      "noDetails": "No additional details available."
+    },
     "warn": {
       "noAdapter": "No loot adapter registered for system \"{system}\". This system may not be supported.",
       "noAdapterDescription": "No loot adapter is registered for this game system. The module currently supports D&D 5e and Pathfinder 2e. See the API documentation to add support for other systems.",

@@ -34,7 +34,7 @@ export const LootRoller = {
 
   /** Open the loot hub (main launcher). */
   openRoller() {
-    const { LootHubApp } = game.modules.get("loot-roller").apps;
+    const { LootHubApp } = game.modules.get("scorpious187s-loot-roller").apps;
     new LootHubApp().render(true);
   },
 
@@ -46,7 +46,7 @@ export const LootRoller = {
    * @param {function(Array<Item>): void} onConfirm
    */
   openQuestRewards(onConfirm) {
-    const { QuestGeneratorApp } = game.modules.get("loot-roller").apps;
+    const { QuestGeneratorApp } = game.modules.get("scorpious187s-loot-roller").apps;
     new QuestGeneratorApp({ onConfirm }).render(true);
   },
 
@@ -58,7 +58,7 @@ export const LootRoller = {
    * @param {{ items: Array<Item>, coins?: Record<string, number> }} lootResult
    */
   startLottery({ items = [], coins = {} } = {}) {
-    const { LotterySetupApp } = game.modules.get("loot-roller").apps;
+    const { LotterySetupApp } = game.modules.get("scorpious187s-loot-roller").apps;
     new LotterySetupApp({ items, coins }).render(true);
   },
 };

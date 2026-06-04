@@ -9,6 +9,9 @@
 import { LootRoller }      from "../api.js";
 import { LootListManager } from "../loot-list-manager.js";
 import { LotterySetupApp } from "./lottery-setup-app.js";
+import { ItemDetailApp }   from "./item-detail-app.js";
+import { buildItemDetail } from "../item-detail.js";
+import { bindRowClicks }   from "../row-click.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -21,7 +24,7 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
   };
 
   static PARTS = {
-    content: { template: "modules/loot-roller/templates/quest-generator.hbs" },
+    content: { template: "modules/scorpious187s-loot-roller/templates/quest-generator.hbs" },
   };
 
   constructor(options = {}) {
@@ -74,6 +77,10 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
             type:   this._current.type,
             stub:   !!this._current.stub,
           }
+        : null,
+      // GM tool — always show the real details (mystified: false), rendered inline.
+      currentDetail: this._current && !this._current.stub
+        ? await buildItemDetail(this._current, { mystified: false })
         : null,
       items: this._items.map((item, idx) => ({
         idx,
@@ -144,25 +151,6 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
     this.element.querySelector("[data-action=roll-item]")
       ?.addEventListener("click", () => this._rollItem());
 
-    this.element.querySelectorAll("[data-action=view-current]").forEach((btn) => {
-      btn.addEventListener("click", async (e) => {
-        e.preventDefault();
-        if (!this._current) return;
-        // Live document — open its sheet directly
-        if (this._current.sheet) { this._current.sheet.render(true); return; }
-        // UUID-backed plain object
-        const uuid = this._current._sourceUuid ?? this._current.uuid;
-        if (uuid) {
-          const doc = await fromUuid(uuid).catch(() => null);
-          if (doc) { doc.sheet.render(true); return; }
-        }
-        // Fallback: temporary in-memory item
-        const data = this._current.toObject?.() ?? { ...this._current };
-        delete data._id;
-        new CONFIG.Item.documentClass(data).sheet.render(true);
-      });
-    });
-
     this.element.querySelector("[data-action=add-item]")
       ?.addEventListener("click", () => this._addItem());
 
@@ -181,15 +169,14 @@ export class QuestGeneratorApp extends HandlebarsApplicationMixin(ApplicationV2)
         const item = this._items[idx];
         if (!item) return;
         const uuid = item._sourceUuid ?? item.uuid;
-        if (uuid) {
-          const doc = await fromUuid(uuid).catch(() => null);
-          if (doc) { doc.sheet.render(true); return; }
-        }
-        const data = item.toObject?.() ?? { ...item };
-        delete data._id;
-        new CONFIG.Item.documentClass(data).sheet.render(true);
+        const doc  = uuid ? await fromUuid(uuid).catch(() => null) : null;
+        // GM tool — show real details in the module's detail popup, not the sheet.
+        ItemDetailApp.show({ item: doc ?? item, mystified: false });
       });
     });
+
+    // Whole-row click opens the same detail popup as the image button.
+    bindRowClicks(this.element);
 
     this.element.querySelector("[data-action=distribute]")
       ?.addEventListener("click", () => this._distribute());

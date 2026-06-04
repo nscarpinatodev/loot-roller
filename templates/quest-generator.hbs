@@ -87,10 +87,7 @@
       </div>
     {{else if current}}
       <div class="item-card quest-item-card">
-        <button type="button" class="item-img-btn" data-action="view-current"
-          title="{{localize 'LOOTROLLER.lottery.viewItem'}}">
-          <img class="item-img" src="{{current.img}}" alt="{{current.name}}" />
-        </button>
+        <img class="item-img" src="{{current.img}}" alt="{{current.name}}" />
         <div class="item-details">
           <p class="item-name">{{current.name}}</p>
           {{#if current.level}}
@@ -107,17 +104,17 @@
             <i class="fa-solid fa-plus"></i>
             {{localize "LOOTROLLER.quest.addItem"}}
           </button>
-          <button type="button" class="btn-view-current" data-action="view-current"
-            title="{{localize 'LOOTROLLER.lottery.viewItem'}}">
-            <i class="fa-solid fa-eye"></i>
-            {{localize "LOOTROLLER.quest.viewCurrent"}}
-          </button>
           <button type="button" class="btn-reroll" data-action="roll-item">
             <i class="fa-solid fa-rotate"></i>
             {{localize "LOOTROLLER.quest.reroll"}}
           </button>
         </div>
       </div>
+      {{#if currentDetail}}
+        <div class="quest-current-detail">
+          {{> "modules/scorpious187s-loot-roller/templates/item-detail.hbs" currentDetail}}
+        </div>
+      {{/if}}
     {{else}}
       <div class="item-roll-prompt">
         <p>{{localize "LOOTROLLER.quest.rollPrompt"}}</p>

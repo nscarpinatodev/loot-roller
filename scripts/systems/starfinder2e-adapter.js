@@ -22,7 +22,7 @@
 
 import { LootRoller } from "../api.js";
 
-const MODULE_ID = "loot-roller";
+const MODULE_ID = "scorpious187s-loot-roller";
 
 // ── System detection ───────────────────────────────────────────────────────────
 // SF2e is "its own system", but the exact id slug varies by distribution.  Match
@@ -449,7 +449,7 @@ export class Starfinder2eAdapter {
   /** Return the pack IDs to search, respecting the user's compendium selection. */
   static getActivePacks() {
     try {
-      const setting = game.settings.get("loot-roller", "compendiumPacks");
+      const setting = game.settings.get("scorpious187s-loot-roller", "compendiumPacks");
       if (setting && Object.keys(setting).length) {
         const enabled = Object.entries(setting)
           .filter(([, on]) => on)

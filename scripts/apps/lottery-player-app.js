@@ -22,11 +22,11 @@ export class LotteryPlayerApp extends HandlebarsApplicationMixin(ApplicationV2) 
     id: "lottery-player-app",
     classes: ["loot-roller", "lottery-player"],
     window: { title: "LOOTROLLER.lottery.rollTitle", icon: "fa-solid fa-dice-d20", minimizable: false },
-    position: { width: 360, height: "auto" },
+    position: { width: 480, height: "auto" },
   };
 
   static PARTS = {
-    content: { template: "modules/loot-roller/templates/lottery-player.hbs" },
+    content: { template: "modules/scorpious187s-loot-roller/templates/lottery-player.hbs" },
   };
 
   constructor(itemPayload, tieBreakerMode = false, options = {}) {
@@ -35,11 +35,10 @@ export class LotteryPlayerApp extends HandlebarsApplicationMixin(ApplicationV2) 
     this._tieBreakerMode = tieBreakerMode;
     this._rolled = false;
     this._rollResult = null;
-    this._showDescription = false;
   }
 
   async _prepareContext(options) {
-    const timeout = game.settings.get("loot-roller", "lotteryTimeout");
+    const timeout = game.settings.get("scorpious187s-loot-roller", "lotteryTimeout");
     return {
       item:            this._item,
       tieBreakerMode:  this._tieBreakerMode,
@@ -49,19 +48,13 @@ export class LotteryPlayerApp extends HandlebarsApplicationMixin(ApplicationV2) 
       secondsLeft:     _secondsLeft,
       round:           this._item.round,
       total:           this._item.total,
-      hasDescription:  !!(this._item.itemDescription?.trim()),
-      showDescription: this._showDescription,
     };
   }
 
   _onRender(context, options) {
     super._onRender?.(context, options);
 
-    this.element.querySelector("[data-action=toggle-description]")
-      ?.addEventListener("click", () => {
-        this._showDescription = !this._showDescription;
-        this.render(false);
-      });
+    // Theme following is handled globally by the renderApplicationV2 hook in main.js.
 
     const rollBtn = this.element.querySelector("[data-action=roll]");
     const passBtn = this.element.querySelector("[data-action=pass]");
@@ -141,7 +134,7 @@ export class LotteryPlayerApp extends HandlebarsApplicationMixin(ApplicationV2) 
 
 function _startTimer() {
   _clearTimer();
-  const timeout = game.settings.get("loot-roller", "lotteryTimeout");
+  const timeout = game.settings.get("scorpious187s-loot-roller", "lotteryTimeout");
   if (timeout <= 0 || !_instance) return;
 
   _secondsLeft = timeout;

@@ -15,7 +15,7 @@
 
 import { LootRoller } from "../api.js";
 
-const MODULE_ID = "loot-roller";
+const MODULE_ID = "scorpious187s-loot-roller";
 
 // ── Item type sets ─────────────────────────────────────────────────────────────
 const PF2E_LOOT_TYPES  = new Set(["weapon", "armor", "shield", "equipment", "consumable", "treasure"]);
@@ -418,7 +418,7 @@ export class PF2eAdapter {
   /** Return the pack IDs to search, respecting the user's compendium selection. */
   static getActivePacks() {
     try {
-      const setting = game.settings.get("loot-roller", "compendiumPacks");
+      const setting = game.settings.get("scorpious187s-loot-roller", "compendiumPacks");
       if (setting && Object.keys(setting).length) {
         const enabled = Object.entries(setting)
           .filter(([, on]) => on)

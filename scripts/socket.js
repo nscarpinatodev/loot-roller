@@ -1,7 +1,7 @@
 /**
  * Socket layer for Loot Roller.
  *
- * All messages flow through the single "module.loot-roller" channel.
+ * All messages flow through the single "module.scorpious187s-loot-roller" channel.
  * Schema: { type: MSG, payload: object, senderId: string }
  *
  * Direction key:
@@ -24,7 +24,7 @@ export const MSG = Object.freeze({
   LOTTERY_COMPLETE: "lotteryComplete",
 });
 
-const CHANNEL = "module.loot-roller";
+const CHANNEL = "module.scorpious187s-loot-roller";
 
 /**
  * Emit a socket message.
@@ -52,7 +52,7 @@ export function registerSocketHandlers() {
 }
 
 function _handleGMMessage(type, payload, senderId) {
-  const manager = game.modules.get("loot-roller").lotteryManager;
+  const manager = game.modules.get("scorpious187s-loot-roller").lotteryManager;
   if (!manager) return;
 
   switch (type) {
@@ -66,7 +66,7 @@ function _handleGMMessage(type, payload, senderId) {
 }
 
 function _handlePlayerMessage(type, payload, senderId) {
-  const { LotteryPlayerApp } = game.modules.get("loot-roller").apps;
+  const { LotteryPlayerApp } = game.modules.get("scorpious187s-loot-roller").apps;
 
   switch (type) {
     case MSG.ITEM_UP_FOR_ROLL:

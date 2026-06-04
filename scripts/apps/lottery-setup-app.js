@@ -16,6 +16,8 @@ import { LotteryGMApp }   from "./lottery-gm-app.js";
 import { LootListManager } from "../loot-list-manager.js";
 import { formatCoins }    from "../currency-helper.js";
 import { LootRoller }     from "../api.js";
+import { ItemDetailApp }  from "./item-detail-app.js";
+import { bindRowClicks }  from "../row-click.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -54,7 +56,7 @@ export class LotterySetupApp extends HandlebarsApplicationMixin(ApplicationV2) {
   };
 
   static PARTS = {
-    form: { template: "modules/loot-roller/templates/lottery-setup.hbs" },
+    form: { template: "modules/scorpious187s-loot-roller/templates/lottery-setup.hbs" },
   };
 
   /** @param {{ coins: object, items: Array }} lootResult */
@@ -66,7 +68,7 @@ export class LotterySetupApp extends HandlebarsApplicationMixin(ApplicationV2) {
     /** @type {Record<number, boolean>} idx → true = mystified (unidentified for players) */
     this._mystified = {};
     /** @type {"equal"|"stash"} */
-    this._currencyMode = game.settings.get("loot-roller", "currencyDistribution") ?? "equal";
+    this._currencyMode = game.settings.get("scorpious187s-loot-roller", "currencyDistribution") ?? "equal";
 
     // Seed mystified state from item data (rare+ items auto-mystified by resolveItems).
     // dnd5e: system.identified === false
@@ -81,7 +83,7 @@ export class LotterySetupApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
   async _prepareContext(options) {
     const { coins, items } = this._lootResult;
-    const stashUuid  = game.settings.get("loot-roller", "partyStashActor");
+    const stashUuid  = game.settings.get("scorpious187s-loot-roller", "partyStashActor");
     const stashActor = stashUuid ? await fromUuid(stashUuid) : null;
 
     return {
@@ -139,6 +141,9 @@ export class LotterySetupApp extends HandlebarsApplicationMixin(ApplicationV2) {
         await _openItemSheet(this._lootResult.items[idx]);
       });
     });
+
+    // Whole-row click opens the same item view as the image button.
+    bindRowClicks(this.element);
 
     // Currency mode buttons
     this.element.querySelectorAll("[data-action=set-currency]").forEach((btn) => {
@@ -228,10 +233,10 @@ export class LotterySetupApp extends HandlebarsApplicationMixin(ApplicationV2) {
     }
 
     const manager = new LotteryManager();
-    game.modules.get("loot-roller").lotteryManager = manager;
+    game.modules.get("scorpious187s-loot-roller").lotteryManager = manager;
 
     const gmApp = new LotteryGMApp(manager);
-    game.modules.get("loot-roller").lotteryGMApp = gmApp;
+    game.modules.get("scorpious187s-loot-roller").lotteryGMApp = gmApp;
 
     app.close();
 
@@ -246,17 +251,11 @@ export class LotterySetupApp extends HandlebarsApplicationMixin(ApplicationV2) {
   }
 }
 
-/** Open an item sheet for any item — document, plain object, or UUID-backed data. */
+/** Open the module's item-detail popup for any item — document, plain object, or UUID-backed data. */
 async function _openItemSheet(item) {
   if (!item) return;
   const uuid = item._sourceUuid ?? item.uuid;
-  if (uuid) {
-    const doc = await fromUuid(uuid).catch(() => null);
-    if (doc) { doc.sheet.render(true); return; }
-  }
-  // Fallback: temporary in-memory item
-  const data = item.toObject?.() ?? { ...item };
-  delete data._id;
-  const temp = new CONFIG.Item.documentClass(data);
-  temp.sheet.render(true);
+  const doc  = uuid ? await fromUuid(uuid).catch(() => null) : null;
+  // GM tool — show real details (mystified: false) regardless of the per-item mystify toggle.
+  ItemDetailApp.show({ item: doc ?? item, mystified: false });
 }

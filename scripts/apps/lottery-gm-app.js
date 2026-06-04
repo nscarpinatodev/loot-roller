@@ -20,7 +20,7 @@ export class LotteryGMApp extends HandlebarsApplicationMixin(ApplicationV2) {
   };
 
   static PARTS = {
-    content: { template: "modules/loot-roller/templates/lottery-gm.hbs" },
+    content: { template: "modules/scorpious187s-loot-roller/templates/lottery-gm.hbs" },
   };
 
   constructor(manager, options = {}) {

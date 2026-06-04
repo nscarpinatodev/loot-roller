@@ -11,7 +11,7 @@ const SETTING_KEY = "savedLists";
 export const LootListManager = {
   /** @returns {Record<string, LootList>} */
   getAll() {
-    return game.settings.get("loot-roller", SETTING_KEY) ?? {};
+    return game.settings.get("scorpious187s-loot-roller", SETTING_KEY) ?? {};
   },
 
   /** @returns {LootList|null} */
@@ -38,21 +38,21 @@ export const LootListManager = {
       return { ...item };
     });
     lists[id] = { id, name, createdAt: Date.now(), category, items: serializedItems, coins };
-    await game.settings.set("loot-roller", SETTING_KEY, lists);
+    await game.settings.set("scorpious187s-loot-roller", SETTING_KEY, lists);
     return id;
   },
 
   async delete(id) {
     const lists = this.getAll();
     delete lists[id];
-    await game.settings.set("loot-roller", SETTING_KEY, lists);
+    await game.settings.set("scorpious187s-loot-roller", SETTING_KEY, lists);
   },
 
   async rename(id, newName) {
     const lists = this.getAll();
     if (!lists[id]) return;
     lists[id].name = newName;
-    await game.settings.set("loot-roller", SETTING_KEY, lists);
+    await game.settings.set("scorpious187s-loot-roller", SETTING_KEY, lists);
   },
 };
 

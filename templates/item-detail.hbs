@@ -1,0 +1,31 @@
+{{!-- Reusable item-detail block. Context: { name, img, typeLabel, stats, descriptionHTML, mystified }
+     Used standalone by ItemDetailApp and as a partial inline in the Quest roller
+     and the player Lottery window. --}}
+<div class="item-detail{{#if mystified}} mystified{{/if}}">
+  <div class="item-detail-top">
+    <img class="item-detail-img" src="{{img}}" alt="" />
+    <div class="item-detail-meta">
+      <div class="item-detail-name">{{name}}</div>
+      {{#if typeLabel}}<div class="item-detail-type">{{typeLabel}}</div>{{/if}}
+    </div>
+  </div>
+
+  {{#if stats.length}}
+    <div class="item-detail-stats">
+      {{#each stats}}
+        <div class="item-detail-stat">
+          <span class="stat-label">{{this.label}}</span>
+          <span class="stat-value">{{this.value}}</span>
+        </div>
+      {{/each}}
+    </div>
+  {{/if}}
+
+  {{#if descriptionHTML}}
+    <div class="item-detail-desc">{{{descriptionHTML}}}</div>
+  {{/if}}
+
+  {{#unless descriptionHTML}}{{#unless stats.length}}
+    <div class="item-detail-empty">{{localize "LOOTROLLER.detail.noDetails"}}</div>
+  {{/unless}}{{/unless}}
+</div>

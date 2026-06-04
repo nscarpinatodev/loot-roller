@@ -8,6 +8,8 @@
  */
 
 import { LootRoller } from "../api.js";
+import { ItemDetailApp } from "./item-detail-app.js";
+import { bindRowClicks } from "../row-click.js";
 
 const { ApplicationV2, HandlebarsApplicationMixin } = foundry.applications.api;
 
@@ -22,7 +24,7 @@ export class LootRollerApp extends HandlebarsApplicationMixin(ApplicationV2) {
   };
 
   static PARTS = {
-    form: { template: "modules/loot-roller/templates/loot-roller.hbs" },
+    form: { template: "modules/scorpious187s-loot-roller/templates/loot-roller.hbs" },
   };
 
   constructor(options = {}) {
@@ -58,7 +60,7 @@ export class LootRollerApp extends HandlebarsApplicationMixin(ApplicationV2) {
 
     this.element.querySelector("[data-action=proceed-to-lottery]")?.addEventListener("click", () => {
       if (!this._items.length) return;
-      const { LotterySetupApp } = game.modules.get("loot-roller").apps;
+      const { LotterySetupApp } = game.modules.get("scorpious187s-loot-roller").apps;
       new LotterySetupApp({ coins: this._coins, items: this._items }).render(true);
       this.close();
     });
@@ -107,20 +109,41 @@ export class LootRollerApp extends HandlebarsApplicationMixin(ApplicationV2) {
     this._items.forEach((item, idx) => {
       const li = document.createElement("li");
       li.className = "lottery-item";
+      const img = item.img ?? "icons/svg/item-bag.svg";
+      const viewTitle = game.i18n.localize("LOOTROLLER.lottery.viewItem");
+      // Stubs (not in a compendium) have no details to show.
+      const imgHTML = item.stub
+        ? `<img class="item-img" src="${img}" alt="">`
+        : `<button type="button" class="item-img-btn" data-action="view-item" title="${viewTitle}"><img class="item-img" src="${img}" alt=""></button>`;
       li.innerHTML = `
-        <img class="item-img" src="${item.img ?? "icons/svg/item-bag.svg"}" alt="">
+        ${imgHTML}
         <div class="item-info">
           <span class="item-name">${item.name ?? "Unknown Item"}</span>
         </div>
         <button type="button" class="btn-icon-remove" title="${game.i18n.localize("LOOTROLLER.quest.removeItem")}">
           <i class="fa-solid fa-xmark"></i>
         </button>`;
+      // Open the detail popup from the image button. preventDefault keeps the
+      // click from affecting the parent <form> (this app, unlike the Shop/Quest
+      // generators, is form-tagged). Whole-row clicking is wired below via
+      // bindRowClicks, which delegates to this button.
+      if (!item.stub) {
+        li.querySelector("[data-action=view-item]")?.addEventListener("click", async (e) => {
+          e?.preventDefault();
+          const uuid = item._sourceUuid ?? item.uuid;
+          const doc  = uuid ? await fromUuid(uuid).catch(() => null) : null;
+          ItemDetailApp.show({ item: doc ?? item, mystified: false });
+        });
+      }
       li.querySelector(".btn-icon-remove").addEventListener("click", () => {
         this._items.splice(idx, 1);
         this._updateResultsDOM();
       });
       listEl.appendChild(li);
     });
+
+    // Whole-row click opens the same detail popup as the image button.
+    bindRowClicks(listEl);
   }
 
   /** @returns {object} Data passed to the Handlebars template. */

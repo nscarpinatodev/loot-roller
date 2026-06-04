@@ -20,7 +20,7 @@ export class SavedListsApp extends HandlebarsApplicationMixin(ApplicationV2) {
   };
 
   static PARTS = {
-    content: { template: "modules/loot-roller/templates/saved-lists.hbs" },
+    content: { template: "modules/scorpious187s-loot-roller/templates/saved-lists.hbs" },
   };
 
   async _prepareContext(options) {

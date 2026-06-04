@@ -278,6 +278,11 @@
 }
 .loot-roller .item-img-btn:hover img { opacity: 0.8; }
 
+/* Whole row opens the detail popup (the .lottery-item:hover rule supplies the
+   background highlight; here we add the cursor and a name underline on hover). */
+.loot-roller .lottery-item.clickable { cursor: pointer; }
+.loot-roller .lottery-item.clickable:hover .item-name { text-decoration: underline; }
+
 /* Mystified item row */
 .loot-roller .lottery-item.mystified { border-color: rgba(130, 80, 223, 0.25); }
 .loot-roller .dest-mystify.selected  { color: #8250df; border-color: #8250df; background: rgba(130,80,223,0.08); }
@@ -1476,4 +1481,214 @@
 .loot-roller .btn-icon-danger:hover {
   color: var(--color-text-error, #cf222e);
   border-color: var(--color-text-error, #cf222e);
+}
+
+/* ── Item detail block (popup + inline in Quest / Lottery) ────────────────── */
+
+.loot-roller .item-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--color-text-primary);
+}
+
+/* Popup window gets padding; inline usages inherit their container's padding. */
+.item-detail-window .item-detail {
+  padding: 12px 16px;
+}
+
+.loot-roller .item-detail-top {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.loot-roller .item-detail-img {
+  width: 48px;
+  height: 48px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--color-border-light);
+  flex-shrink: 0;
+}
+
+.loot-roller .item-detail-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.loot-roller .item-detail-name {
+  font-weight: bold;
+  font-size: 15px;
+  line-height: 1.2;
+}
+
+.loot-roller .item-detail-type {
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-light-7);
+}
+
+.loot-roller .item-detail.mystified .item-detail-name {
+  font-style: italic;
+  color: #8250df;
+}
+
+.loot-roller .item-detail-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 4px 12px;
+  padding: 6px 0;
+  border-top: 1px solid var(--color-border-light);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.loot-roller .item-detail-stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 12px;
+}
+
+.loot-roller .item-detail-stat .stat-label {
+  color: var(--color-text-light-7);
+}
+
+.loot-roller .item-detail-stat .stat-value {
+  font-weight: bold;
+  text-align: right;
+}
+
+.loot-roller .item-detail-desc {
+  font-size: 12px;
+  line-height: 1.5;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.loot-roller .item-detail-desc :is(p, ul, ol):first-child { margin-top: 0; }
+.loot-roller .item-detail-desc :is(p, ul, ol):last-child  { margin-bottom: 0; }
+.loot-roller .item-detail-desc img { max-width: 100%; height: auto; }
+
+.loot-roller .item-detail-empty {
+  font-size: 12px;
+  font-style: italic;
+  color: var(--color-text-light-7);
+  text-align: center;
+  padding: 8px;
+}
+
+/* Inline detail under the rolled Quest item */
+.loot-roller .quest-current-detail {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border-light);
+  border-radius: 6px;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* ── Player Lottery popup: item detail + Quest Tracker theme mirror ───────── */
+
+.loot-roller .lottery-progress-line {
+  text-align: center;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-light-7);
+}
+
+.loot-roller .lottery-item-detail {
+  border: 1px solid var(--color-border-light);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.03);
+}
+
+/* ── Sibling-module theme following ─────────────────────────────────────────
+   Loot Roller has no theme of its own. When Quest Tracker or Customizable Shop
+   is active, that module's ThemeManager.applyToElement sets its --sqt-* / --scs-*
+   vars on :root and marks our window with data-sqt-theme / data-scs-theme.
+   We resolve whichever prefix is present into local --lr-* vars once, then theme
+   every Loot Roller window from those. Unmarked windows keep the standard look. */
+.loot-roller[data-sqt-theme],
+.loot-roller[data-scs-theme] {
+  --lr-bg-primary:     var(--sqt-bg-primary,     var(--scs-bg-primary));
+  --lr-bg-secondary:   var(--sqt-bg-secondary,   var(--scs-bg-secondary));
+  --lr-bg-item:        var(--sqt-bg-item,        var(--scs-bg-item));
+  --lr-text-primary:   var(--sqt-text-primary,   var(--scs-text-primary));
+  --lr-text-secondary: var(--sqt-text-secondary, var(--scs-text-secondary));
+  --lr-accent:         var(--sqt-accent,         var(--scs-accent));
+  --lr-border:         var(--sqt-border,         var(--scs-border, var(--color-border-light)));
+  --lr-btn-text:       var(--sqt-btn-text,       var(--scs-btn-text, #fff));
+}
+
+/* Frame + Foundry's opaque .window-content body (providers don't paint the body
+   for our window since it lacks their own window class). */
+.loot-roller[data-sqt-theme],
+.loot-roller[data-scs-theme],
+.loot-roller[data-sqt-theme] .window-content,
+.loot-roller[data-scs-theme] .window-content {
+  background: var(--lr-bg-primary) !important;
+  color: var(--lr-text-primary);
+}
+
+/* Inherit the themed text colour across common text surfaces. */
+.loot-roller[data-sqt-theme] :is(h1, h2, h3, h4, p, span, label, .item-name, .lottery-progress-line),
+.loot-roller[data-scs-theme] :is(h1, h2, h3, h4, p, span, label, .item-name, .lottery-progress-line) {
+  color: var(--lr-text-primary);
+}
+
+.loot-roller[data-sqt-theme] :is(.item-detail-type, .item-detail-stat .stat-label, .hint, .notes),
+.loot-roller[data-scs-theme] :is(.item-detail-type, .item-detail-stat .stat-label, .hint, .notes) {
+  color: var(--lr-text-secondary);
+}
+
+/* Card / panel / list surfaces. */
+.loot-roller[data-sqt-theme] :is(.lottery-item-detail, .item-card, .item-detail, .item-description-panel, .loot-results-section, .lottery-item, .saved-list-row),
+.loot-roller[data-scs-theme] :is(.lottery-item-detail, .item-card, .item-detail, .item-description-panel, .loot-results-section, .lottery-item, .saved-list-row) {
+  background: var(--lr-bg-secondary, rgba(0, 0, 0, 0.03));
+  border-color: var(--lr-border);
+}
+
+.loot-roller[data-sqt-theme] :is(.item-detail-img, .item-detail-stats),
+.loot-roller[data-scs-theme] :is(.item-detail-img, .item-detail-stats) {
+  border-color: var(--lr-border);
+}
+
+/* Text-like inputs only (providers inline-style the same set). Deliberately
+   excludes range/checkbox/radio/color so sliders and toggles keep their styling. */
+.loot-roller[data-sqt-theme] :is(input[type="text"], input[type="number"], input[type="search"], textarea, select),
+.loot-roller[data-scs-theme] :is(input[type="text"], input[type="number"], input[type="search"], textarea, select) {
+  background: var(--lr-bg-item) !important;
+  color: var(--lr-text-primary) !important;
+  border-color: var(--lr-border) !important;
+}
+
+/* Primary action buttons take the accent; secondary buttons a muted item bg. */
+.loot-roller[data-sqt-theme] :is(button[type=submit], .btn-roll, .btn-primary, .hub-btn),
+.loot-roller[data-scs-theme] :is(button[type=submit], .btn-roll, .btn-primary, .hub-btn) {
+  background: var(--lr-accent) !important;
+  color: var(--lr-btn-text) !important;
+  border-color: var(--lr-accent) !important;
+}
+
+.loot-roller[data-sqt-theme] .btn-pass,
+.loot-roller[data-scs-theme] .btn-pass {
+  background: var(--lr-bg-item) !important;
+  color: var(--lr-text-primary) !important;
+}
+
+.loot-roller[data-sqt-theme] .roll-result strong,
+.loot-roller[data-scs-theme] .roll-result strong {
+  color: var(--lr-accent);
+}
+
+.loot-roller[data-sqt-theme] .tiebreaker-banner,
+.loot-roller[data-scs-theme] .tiebreaker-banner {
+  background: var(--lr-accent);
+  color: var(--lr-btn-text);
 }

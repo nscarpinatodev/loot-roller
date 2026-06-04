@@ -8,25 +8,27 @@
     </div>
   {{/if}}
 
-  <div class="item-card">
-    <img class="item-img" src="{{item.itemImg}}" alt="{{item.itemName}}" />
-    <div class="item-details">
-      <h2 class="item-name">{{item.itemName}}</h2>
-      {{#if item.total}}
-        <span class="item-progress">
-          {{localize "LOOTROLLER.player.itemProgress"}} {{item.round}}/{{item.total}}
-        </span>
-      {{/if}}
-      {{#if hasDescription}}
-        <button type="button" class="btn-description-toggle" data-action="toggle-description">
-          <i class="fa-solid {{#if showDescription}}fa-chevron-up{{else}}fa-chevron-down{{/if}}"></i>
-          {{localize "LOOTROLLER.player.viewDetails"}}
-        </button>
-      {{/if}}
+  {{#if item.total}}
+    <div class="lottery-progress-line">
+      {{localize "LOOTROLLER.player.itemProgress"}} {{item.round}}/{{item.total}}
     </div>
-  </div>
-  {{#if showDescription}}
-    <div class="item-description-panel">{{{item.itemDescription}}}</div>
+  {{/if}}
+
+  {{!-- Full item details for the item up for rolling (mystification handled GM-side) --}}
+  {{#if item.itemDetail}}
+    <div class="lottery-item-detail">
+      {{> "modules/scorpious187s-loot-roller/templates/item-detail.hbs" item.itemDetail}}
+    </div>
+  {{else}}
+    <div class="item-card">
+      <img class="item-img" src="{{item.itemImg}}" alt="{{item.itemName}}" />
+      <div class="item-details">
+        <h2 class="item-name">{{item.itemName}}</h2>
+      </div>
+    </div>
+    {{#if item.itemDescription}}
+      <div class="item-description-panel">{{{item.itemDescription}}}</div>
+    {{/if}}
   {{/if}}
 
   {{#if rolled}}

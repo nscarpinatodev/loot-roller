@@ -22,6 +22,8 @@ import { QuestGeneratorApp }      from "./apps/quest-generator-app.js";
 import { ShopGeneratorApp }       from "./apps/shop-generator-app.js";
 import { SavedListsApp }          from "./apps/saved-lists-app.js";
 import { CompendiumSettingsApp }  from "./apps/compendium-settings-app.js";
+import { ItemDetailApp }          from "./apps/item-detail-app.js";
+import { applyFollowedTheme, refreshOpenWindows } from "./theme-follow.js";
 
 // System adapters — only one will self-register based on game.system.id
 import "./systems/dnd5e-adapter.js";
@@ -29,7 +31,7 @@ import "./systems/pf2e-adapter.js";
 import "./systems/starfinder2e-adapter.js";
 import "./systems/fallout-adapter.js";
 
-const MODULE_ID = "loot-roller";
+const MODULE_ID = "scorpious187s-loot-roller";
 
 // ── init ─────────────────────────────────────────────────────────────────────
 
@@ -114,6 +116,11 @@ Hooks.once("init", () => {
       .replace(/\s+/g, "-")
       .toLowerCase()
   );
+
+  // Register the shared item-detail partial so it can be embedded inline
+  // (Quest roller, player Lottery window) as well as in the ItemDetailApp popup.
+  const _loadTemplates = foundry.applications?.handlebars?.loadTemplates ?? globalThis.loadTemplates;
+  _loadTemplates?.([`modules/${MODULE_ID}/templates/item-detail.hbs`]);
 });
 
 // ── ready ─────────────────────────────────────────────────────────────────────
@@ -124,7 +131,7 @@ Hooks.once("ready", () => {
 
   // ── Store app constructors on module for cross-file access ───────────────
   const mod = game.modules.get(MODULE_ID);
-  mod.apps = { LootHubApp, LootRollerApp, LotterySetupApp, LotteryPlayerApp, LotteryGMApp, QuestGeneratorApp, ShopGeneratorApp, SavedListsApp, CompendiumSettingsApp };
+  mod.apps = { LootHubApp, LootRollerApp, LotterySetupApp, LotteryPlayerApp, LotteryGMApp, QuestGeneratorApp, ShopGeneratorApp, SavedListsApp, CompendiumSettingsApp, ItemDetailApp };
   mod.api  = LootRoller;
 
   // ── Register adapter-specific settings (i18n is ready now) ───────────────
@@ -148,6 +155,17 @@ Hooks.once("ready", () => {
       CompendiumHelper.getIndex(packId).catch(() => {});
     }
   }
+
+  // ── Theme following ──────────────────────────────────────────────────────
+  // Loot Roller has no theme of its own; its windows adopt the active sibling
+  // module's theme (Quest Tracker, then Customizable Shop). Apply on every
+  // Loot Roller window render, and re-apply live when a provider's theme changes.
+  Hooks.on("renderApplicationV2", (app) => {
+    const el = app?.element;
+    if (el?.classList?.contains("loot-roller")) applyFollowedTheme(el);
+  });
+  Hooks.on("sqt.themeChanged", () => refreshOpenWindows());
+  Hooks.on("scs.themeChanged", () => refreshOpenWindows());
 
   console.log(`Loot Roller | Ready. Adapter: ${adapter?.systemName ?? "none"}`);
 });

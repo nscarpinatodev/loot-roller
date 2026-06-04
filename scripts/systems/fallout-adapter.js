@@ -16,7 +16,7 @@
 
 import { LootRoller } from "../api.js";
 
-const MODULE_ID = "loot-roller";
+const MODULE_ID = "scorpious187s-loot-roller";
 
 /** Return a random integer between min and max inclusive. */
 function _randInt(min, max) {
@@ -354,7 +354,7 @@ export class FalloutAdapter {
 
   static getActivePacks() {
     try {
-      const setting = game.settings.get("loot-roller", "compendiumPacks");
+      const setting = game.settings.get("scorpious187s-loot-roller", "compendiumPacks");
       if (setting && Object.keys(setting).length) {
         const enabled = Object.entries(setting)
           .filter(([, on]) => on)

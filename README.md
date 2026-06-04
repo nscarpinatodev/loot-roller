@@ -1,4 +1,4 @@
-# Loot Roller
+# Scorpious187's Loot Roller
 
 A system-agnostic loot generator for [Foundry VTT](https://foundryvtt.com/) with a
 real-time player **lottery / roll-off** for distributing items. Generate treasure

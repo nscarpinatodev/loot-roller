@@ -19,11 +19,11 @@ export class PartyStashConfigApp extends HandlebarsApplicationMixin(ApplicationV
   };
 
   static PARTS = {
-    content: { template: "modules/loot-roller/templates/party-stash-config.hbs" },
+    content: { template: "modules/scorpious187s-loot-roller/templates/party-stash-config.hbs" },
   };
 
   async _prepareContext(options) {
-    const uuid = game.settings.get("loot-roller", "partyStashActor");
+    const uuid = game.settings.get("scorpious187s-loot-roller", "partyStashActor");
     const actor = uuid ? await fromUuid(uuid) : null;
     return {
       stashActorName: actor?.name ?? null,
@@ -48,14 +48,14 @@ export class PartyStashConfigApp extends HandlebarsApplicationMixin(ApplicationV
         if (data.type !== "Actor") return;
         const actor = await fromUuid(data.uuid);
         if (!actor) return;
-        await game.settings.set("loot-roller", "partyStashActor", data.uuid);
+        await game.settings.set("scorpious187s-loot-roller", "partyStashActor", data.uuid);
         this.render(false);
       });
     }
 
     this.element.querySelector("[data-action=clear-stash]")?.addEventListener("click", async (e) => {
       e.preventDefault();
-      await game.settings.set("loot-roller", "partyStashActor", "");
+      await game.settings.set("scorpious187s-loot-roller", "partyStashActor", "");
       this.render(false);
     });
   }
