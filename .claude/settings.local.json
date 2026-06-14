@@ -61,7 +61,11 @@
       "Bash(awk '/id: .scifi-terminal./{f=1} f{print} /\\\\}/{if\\(f\\)c++; if\\(c>3\\)exit}' scripts/data/theme-presets.js)",
       "Bash(node -e \"const j=require\\('./lang/en.json'\\); console.log\\(JSON.stringify\\(j.LOOTROLLER.shop,null,1\\)\\)\")",
       "Bash(node --check --input-type=module)",
-      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('lang/en.json','utf8'\\)\\); console.log\\('en.json OK'\\)\")"
+      "Bash(node -e \"JSON.parse\\(require\\('fs'\\).readFileSync\\('lang/en.json','utf8'\\)\\); console.log\\('en.json OK'\\)\")",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(gh pr *)",
+      "Bash(git ls-tree *)"
     ],
     "additionalDirectories": [
       "c:\\Users\\djsco\\OneDrive\\Documents\\GitHub\\scorpious187s-customizable-shop\\scripts",
