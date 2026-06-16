@@ -25,3 +25,6 @@ desktop.ini
 
 # Node dependencies (if ever introduced)
 node_modules/
+
+# Unused legacy data tables — scrubbed going forward (kept in history / old builds)
+data/

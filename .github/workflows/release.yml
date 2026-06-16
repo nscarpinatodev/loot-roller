@@ -53,7 +53,7 @@ jobs:
       - name: Build package (module files at zip root)
         run: |
           zip -r "$MODULE_ZIP" \
-            module.json scripts styles templates lang data README.md LICENSE
+            module.json scripts styles templates lang README.md LICENSE
 
       - name: Release notes from tag annotation
         run: |
