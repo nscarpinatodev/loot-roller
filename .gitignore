@@ -1,4 +1,27 @@
-loot-roller.code-workspace
-.claude
-loot-roller.zip
+# Build artifacts (release zips are built by CI / packaged locally)
+*.zip
+
+# Local release-note drafts (the release body comes from the tag message)
 release-notes-*.md
+
+# Claude Code local config (per-user settings, not shared)
+.claude/
+
+# Editor / IDE
+*.code-workspace
+.vscode/
+.idea/
+*.sublime-workspace
+
+# OS cruft
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs & temp files
+*.log
+*.tmp
+*.bak
+
+# Node dependencies (if ever introduced)
+node_modules/
